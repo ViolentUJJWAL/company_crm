@@ -18,7 +18,7 @@ Super CRM is a multi-tenant Customer Relationship Management (CRM) system design
   - **Meetings**: Schedule, Edit, Cancel rights.
 
 ### 3. Core Modules
-- **To-Do Module**: Employees can create, edit, and mark tasks as completed. Admins can assign tasks and set deadlines.
+- **To-Do Module**: Employees can create, edit, and mark tasks as completed.
 - **Task Assignment**: Assign tasks to employees, set priorities & deadlines, track progress.
 - **Lead Tracking**: Create & manage leads, assign leads to employees, track lead status (New, In Progress, Closed) based on assigned permissions.
 - **Meeting Management**: Schedule meetings with clients or internal teams, set agendas, and notify participants.
@@ -47,6 +47,7 @@ Super CRM is a multi-tenant Customer Relationship Management (CRM) system design
 - Leads
 - Meetings
 - Roles & Permissions
+- ToDo
 
 ## Additional Features
 - **Email Notifications**: Send approval/rejection emails.
