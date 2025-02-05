@@ -2,7 +2,7 @@
 
 ## Database Collections Schema
 
-### User Schema
+### 1. User Schema
 - **name** (String, required, minLength: 3) - The full name of the user
 - **email** (String, required, unique, lowercase) - The email address of the user
 - **phoneNo** (String, required, unique, match: /^\d{10,15}$/) - The user's phone number
@@ -12,7 +12,7 @@
   - Custom validation: Must be null for SuperAdmin role
 - **timestamps** - Automatically stores creation and update times
 
-### Company Schema
+### 2. Company Schema
 - **name** (String, required, unique, minLength: 3) - The company's name
 - **phoneNo** (String, required, unique, match: /^\d{10,15}$/) - The company's contact number
 - **email** (String, required, unique, lowercase) - The company's email address
@@ -30,7 +30,7 @@
 - **isActive** (Boolean, default: true) - Indicates if the company is active
 - **timestamps** - Automatically stores creation and update times
 
-### Employee Schema
+### 3. Employee Schema
 - **user** (ObjectId, references User, required) - The associated user
 - **image** - Stores the employee's image details:
   - **public_id** (String, required) - The image's public ID
@@ -47,7 +47,7 @@
 - **isActive** (Boolean, default: true) - Whether the employee is active
 - **timestamps** - Automatically stores creation and update times
 
-### Role Schema
+### 4. Role Schema
 - **name** (String, required, minLength: 3, maxLength: 50) - The role name
 - **permissions** - Defines CRUD permissions for different features:
   - **leads** - Permission set for lead management:
@@ -69,7 +69,7 @@
 - **company** (ObjectId, references Company, required) - The company to which the role belongs
 - **timestamps** - Automatically stores creation and update times
 
-### Todo Schema
+### 5. Todo Schema
 - **user** (ObjectId, references User, required) - The user who created the todo
 - **company** (ObjectId, references Company, required) - The company the todo belongs to
 - **title** (String, required, minLength: 3, maxLength: 100) - The todo title
@@ -79,7 +79,7 @@
 - **conclusionSubmiteTime** (Date) - When the conclusion was submitted
 - **timestamps** - Automatically stores creation and update times
 
-### Meeting Schema
+### 6. Meeting Schema
 - **title** (String, required) - The meeting title
 - **participants** (Array<ObjectId>, references User, required) - List of users attending the meeting
 - **forLead** (ObjectId, references Lead) - Associated lead if the meeting is lead-related
@@ -89,7 +89,7 @@
 - **company** (ObjectId, references Company, required) - The company hosting the meeting
 - **timestamps** - Automatically stores creation and update times
 
-### TaskAssigned Schema
+### 7. TaskAssigned Schema
 - **company** (ObjectId, references Company, required) - The company the task belongs to
 - **title** (String, required) - The task title
 - **description** (String, required) - The task description
@@ -101,53 +101,56 @@
 - **conclusionSubmitTime** (Date) - When the conclusion was submitted
 - **timestamps** - Automatically stores creation and update times
 
-### LeadFor Schema
+### 8. LeadFor Schema
 - **company** (ObjectId, references Company, required) - The company the lead category belongs to
 - **name** (String, required, minLength: 3) - The name of the lead category
 - **isActive** (Boolean, default: true) - Whether the lead category is active
 - **timestamps** - Automatically stores creation and update times
 
-### LeadSource Schema
+### 9. LeadSource Schema
 - **company** (ObjectId, references Company, required) - The company the lead source belongs to
 - **name** (String, required, minLength: 3) - The name of the lead source
 - **isActive** (Boolean, default: true) - Whether the lead source is active
 - **timestamps** - Automatically stores creation and update times
 
-### Lead Schema
+### 10. LeadStatusLabel Schema
+- **company** (ObjectId, references Company, required) - The company the status label belongs to
+- **name** (String, required, minLength: 3, trim: true) - The name of the status label
+- **timestamps** - Automatically stores creation and update times
+
+### 11. Lead Schema
 - **for** (ObjectId, references LeadFor, required) - The purpose of the lead
 - **source** (ObjectId, references LeadSource, required) - The source of the lead
 - **priority** (String, enum: Low, Medium, High, default: Medium) - The priority level
-- **contact** - The lead's contact information:
-  - **name** (String, required) - Contact name
-  - **phoneNo** (String, required, match: /^\d{10,15}$/) - Contact phone number
-  - **email** (String, required, lowercase) - Contact email
-  - **address** - Contact's address details:
-    - **country** (String, required) - The country
-    - **state** (String, required) - The state
-    - **city** (String, required) - The city
-    - **pincode** (String, required, match: /^\d{4,10}$/) - The postal code
-  - **businessCard** - Business card image details:
-    - **public_id** (String, required) - The image's public ID
-    - **url** (String, required) - The image's URL
+- **contact** (ObjectId, references Contacts, required) - The lead's contact information
 - **reference** - Reference contact information:
-  - **name** (String) - Reference name
-  - **email** (String, match: email pattern) - Reference email
+  - **name** (String, trim: true) - Reference name
+  - **email** (String, lowercase, match: email pattern) - Reference email
   - **phoneNo** (String, match: /^\d{10,15}$/) - Reference phone number
 - **followUps** - Array of follow-up records:
   - **sequence** (Number, required) - Follow-up sequence number
   - **date** (Date, required) - Follow-up date
-  - **conclusion** (String) - Follow-up conclusion
+  - **conclusion** (String, trim: true) - Follow-up conclusion
   - **meeting** (ObjectId, references Meeting) - Associated meeting
-- **status** (String, enum: New, Contacted, Qualified, Converted, Closed, default: New) - Lead status
-- **remark** (String) - Additional remarks
+- **status** (ObjectId, references LeadStatusLabel, required) - The current status of the lead
+- **remark** (String, trim: true) - Additional remarks
 - **assignedTo** (ObjectId, references Employee, required) - The employee handling the lead
 - **company** (ObjectId, references Company, required) - The company associated with the lead
 - **timestamps** - Automatically stores creation and update times
 
-### Contacts Schema
-- **name** (String, required, minLength: 3) - The contact's name
-- **email** (String, required, unique, lowercase) - The contact's email address
-- **phoneNo** (String, required, match: /^\d{10,15}$/) - The contact's phone number
+### 12. Contacts Schema
+- **name** (String, required, trim: true) - The contact's name
+- **phoneNo** (String, match: /^\d{10,15}$/) - The contact's phone number
+- **email** (String, required, lowercase, trim: true) - The contact's email address
+- **address** - The contact's address details:
+  - **country** (String) - The country
+  - **state** (String) - The state
+  - **city** (String) - The city
+  - **pincode** (String, match: /^\d{4,10}$/) - The postal code
+- **businessCard** - Business card image details:
+  - **public_id** (String, required) - The image's public ID
+  - **url** (String, required) - The image's URL
+- **isClient** (Boolean, default: false) - Indicates if the contact is a client
 - **company** (ObjectId, references Company, required) - The company associated with the contact
 - **timestamps** - Automatically stores creation and update times
 
@@ -166,8 +169,10 @@
 3. Lead Management:
    - Leads are associated with a company
    - Leads have a source (LeadSource) and purpose (LeadFor)
-   - Leads can be assigned to employees
+   - Leads are assigned to employees
    - Leads can have associated meetings and follow-ups
+   - Lead status is managed through customizable status labels (LeadStatusLabel)
+   - Lead contacts are managed through the Contacts collection
 
 4. Task Management:
    - Tasks (TaskAssigned) are company-specific
@@ -180,3 +185,10 @@
    - Meetings can include both internal users and external contacts
 
 All schemas include timestamps for creation and update times, and appropriate validation rules for required fields, string lengths, and data formats. Most string fields are automatically trimmed unless otherwise specified.
+
+Key Changes from Original Schema:
+1. Added LeadStatusLabel schema for customizable lead statuses
+2. Modified Lead schema to reference Contacts collection instead of embedding contact details
+3. Updated Contacts schema to include business card information and client status
+4. Added email validation pattern in relevant schemas
+5. Made contact details more consistent across schemas

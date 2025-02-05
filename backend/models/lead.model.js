@@ -18,36 +18,9 @@ const leadSchema = new mongoose.Schema(
       default: 'Medium',
     },
     contact: {
-      name: {
-        type: String,
-        required: [true, 'Contact name is required'],
-        trim: true,
-      },
-      phoneNo: {
-        type: String,
-        required: [true, 'Contact phone number is required'],
-        match: [/^\d{10,15}$/, 'Phone number must be between 10 to 15 digits'],
-      },
-      email: {
-        type: String,
-        required: [true, 'Contact email is required'],
-        trim: true,
-        lowercase: true,
-      },
-      address: {
-        country: { type: String, required: [true, 'Country is required'] },
-        state: { type: String, required: [true, 'State is required'] },
-        city: { type: String, required: [true, 'City is required'] },
-        pincode: {
-          type: String,
-          required: [true, 'Pincode is required'],
-          match: [/^\d{4,10}$/, 'Pincode must be between 4 to 10 digits'],
-        },
-      },
-      businessCard: {
-        public_id: { type: String, required: [true, 'Business card public_id is required'] },
-        url: { type: String, required: [true, 'Business card URL is required'] },
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Contacts',
+      required: [true, 'Lead Contact is required'],
     },
     reference: {
       name: { type: String, trim: true },
@@ -74,9 +47,12 @@ const leadSchema = new mongoose.Schema(
       },
     ],
     status: {
-      type: String,
-      enum: ['New', 'Contacted', 'Qualified', 'Converted', 'Closed'],
-      default: 'New',
+      // type: String,
+      // enum: ['New', 'Contacted', 'Qualified', 'Converted', 'Closed'],
+      // default: 'New',
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LeadStatusLabel',
+      required: [true, 'Lead Status Label is required'],
     },
     remark: { type: String, trim: true },
     assignedTo: {

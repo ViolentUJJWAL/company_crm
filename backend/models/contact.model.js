@@ -4,21 +4,35 @@ const contactsSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, 'Contact name is required'],
       trim: true,
-      minlength: [3, 'Name must be at least 3 characters long'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      unique: [true, "Email must be unique"],
-      trim: true,
-      lowercase: true,
     },
     phoneNo: {
       type: String,
-      required: [true, 'Phone number is required'],
       match: [/^\d{10,15}$/, 'Phone number must be between 10 to 15 digits'],
+    },
+    email: {
+      type: String,
+      required: [true, 'Contact email is required'],
+      trim: true,
+      lowercase: true,
+    },
+    address: {
+      country: { type: String },
+      state: { type: String },
+      city: { type: String },
+      pincode: {
+        type: String,
+        match: [/^\d{4,10}$/, 'Pincode must be between 4 to 10 digits'],
+      },
+    },
+    businessCard: {
+      public_id: { type: String, required: [true, 'Business card public_id is required'] },
+      url: { type: String, required: [true, 'Business card URL is required'] },
+    },
+    isClient: {
+      type: Boolean,
+      default: false
     },
     company: {
       type: mongoose.Schema.Types.ObjectId,
