@@ -22,6 +22,6 @@ app.get("/", (req, res)=>{
 
 const authRoutes = require("./routes/auth.routes")
 
-app.use("/api/vi/auth", authRoutes)
+app.use("/api/v1/auth", authRoutes)
 
 module.exports = app;

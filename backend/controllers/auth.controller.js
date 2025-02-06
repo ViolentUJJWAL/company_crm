@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
 const { uploadOnCloudinary } = require("../utils/cloudinary");
 const checkCompanyAndEmployeeStatus = require("../utils/checkCompanyAndEmployeeStatus");
+const BlockedToken = require("../models/blockToken.model");
 
 
 // ✅ Super Admin Registration
@@ -50,13 +51,15 @@ exports.registerCompany = async (req, res) => {
     try {
         const { ownerName, companyName, ownerEmail, companyEmail, ownerPhoneNo, companyPhoneNo, password, industry, address } = req.body;
 
+        console.log(req.body)
+
         // 🔸 Validation: Check required fields
-        if (!ownerName || !companyName || !ownerEmail || companyEmail || !ownerPhoneNo || companyPhoneNo || !password || !industry || !address) {
+        if (!ownerName || !companyName || !ownerEmail || !companyEmail || !ownerPhoneNo || !companyPhoneNo || !password || !industry || !address) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
         // 🔸 Check if email or phone already exists
-        const existingUser = await User.findOne({ $or: [{ email }, { phoneNo }] });
+        const existingUser = await User.findOne({ $or: [{ email: ownerEmail }, { phoneNo: ownerPhoneNo }] });
         if (existingUser) return res.status(400).json({ message: "Email or Phone already exists" });
         const existingCompany = await User.findOne({ $or: [{ email: companyEmail }, { phoneNo: companyPhoneNo }] });
         if (existingCompany) return res.status(400).json({ message: "Email or Phone already exists" });
@@ -103,7 +106,7 @@ exports.registerCompany = async (req, res) => {
         return res.status(201).json({ message: "Company registered successfully" });
     } catch (error) {
         console.error("Company Registration Error:", error);
-        returnres.status(500).json({ message: "Server error", error });
+        return res.status(500).json({ message: "Server error", error });
     }
 };
 

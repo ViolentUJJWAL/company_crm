@@ -5,9 +5,10 @@ const BlockedToken = require("../models/blockToken.model");
 const authMiddleware = async (req, res, next) => {
   try {
     const token = req.cookies.token; // Get token from cookies
+    console.log(token)
     if (!token) return res.status(401).json({ message: "Unauthorized, Access Denied" });
 
-    if (await BlockedToken.find({token})){
+    if (await BlockedToken.findOne({token})){
         return res.status(401).json({ message: "Unauthorized, Access Denied" })
     }
 
