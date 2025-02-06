@@ -20,4 +20,8 @@ app.get("/", (req, res)=>{
     res.status(200).send("Setup backend")
 })
 
+const authRoutes = require("./routes/auth.routes")
+
+app.use("/api/vi/auth", authRoutes)
+
 module.exports = app;

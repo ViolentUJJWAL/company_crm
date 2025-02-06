@@ -1,6 +1,8 @@
 const Company = require("../models/company.model");
 const Employee = require("../models/employee.model");
 const User = require("../models/user.model");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendMail");
 
 
 // ✅ Super Admin Registration
@@ -162,7 +164,6 @@ exports.registerEmployee = async (req, res) => {
     }
 };
 
-
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -199,7 +200,6 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-
 exports.logout = async (req, res) => {
 
     try {
@@ -223,7 +223,6 @@ exports.logout = async (req, res) => {
 
 };
 
-
 exports.getProfile = async (req, res) => {
     try {
         // ["SuperAdmin", "CompanyAdmin", "Employee"]
@@ -244,3 +243,89 @@ exports.getProfile = async (req, res) => {
         return res.status(500).json({ message: "Server error", error });
     }
 }
+
+
+// ✅ Forgot Password - Generate Reset Token
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // 🔸 Validate email
+        if (!email) return res.status(400).json({ message: "Email is required" });
+
+        // 🔸 Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (user.role === "Employee" || user.role === "CompanyAdmin") {
+            const company = await Company.findById(user.company)
+            if (!company.isActive) return res.status(200).json({ message: "Company is inactive. Access denied." });
+            if (user.role === "Employee") {
+                const employee = await Employee.findOne({ user })
+                if (!employee.isActive) return res.status(200).json({ message: "Employee is inactive. Access denied." });
+                if (employee.verify !== "Verify") return res.status(200).json({ message: "Employee is not Verify. Access denied.", status: employee.verify });
+            }
+        }
+
+        // 🔸 Generate Reset Token
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const tokenExpire = Date.now() + 15 * 60 * 1000; // Expires in 15 minutes
+
+        user.forgotPassword.token = resetToken;
+        user.forgotPassword.tokenExpire = tokenExpire;
+        await user.save();
+
+        // 🔸 Send Email with Reset Link
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+        const message = `You requested a password reset. Click on the link below to reset your password:\n\n ${resetUrl}\n\nThis link will expire in 15 minutes.`;
+
+        await sendEmail(user.email, "Password Reset Request", message);
+
+        return res.status(200).json({ message: "Password reset link sent to email" });
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.checkToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        // 🔸 Validate Inputs
+        if (!token) return res.status(400).json({ message: "Token are required" });
+
+        // 🔸 Find User by Token
+        const user = await User.findOne({ "forgotPassword.token": token, "forgotPassword.tokenExpire": { $gt: Date.now() } });
+        if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+        return res.status(200).json({ message: "Forgot Password token is active now" });
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+}
+
+// ✅ Reset Password
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        // 🔸 Validate Inputs
+        if (!token || !newPassword) return res.status(400).json({ message: "Token and new password are required" });
+
+        // 🔸 Find User by Token
+        const user = await User.findOne({ "forgotPassword.token": token, "forgotPassword.tokenExpire": { $gt: Date.now() } });
+        if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+        // 🔸 Update Password & Clear Token
+        user.password = newPassword;
+        user.forgotPassword = { token: null, tokenExpire: null };
+        await user.save();
+
+        return res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+        console.error("Reset Password Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
