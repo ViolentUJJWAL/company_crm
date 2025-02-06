@@ -4,6 +4,7 @@ const User = require("../models/user.model");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
 const { uploadOnCloudinary } = require("../utils/cloudinary");
+const checkCompanyAndEmployeeStatus = require("../utils/checkCompanyAndEmployeeStatus");
 
 
 // ✅ Super Admin Registration
@@ -12,7 +13,7 @@ exports.registerSuperAdmin = async (req, res) => {
         const { name, email, phoneNo, password, supreAdmincreatePassword } = req.body;
 
         // 🔸 Validation: Check required fields
-        if (!name || !email || !phoneNo || !password || supreAdmincreatePassword) {
+        if (!name || !email || !phoneNo || !password || !supreAdmincreatePassword) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -165,38 +166,31 @@ exports.registerEmployee = async (req, res) => {
     }
 };
 
+// 🔹 Login User Controller
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
         const user = await User.findOne({ email }).select("+password");
         if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-        if (user.role === "Employee" || user.role === "CompanyAdmin") {
-            const company = await Company.findById(user.company)
-            if (!company.isActive) return res.status(200).json({ message: "Company is inactive. Access denied." });
-            if (user.role === "Employee") {
-                const employee = await Employee.findOne({ user })
-                if (!employee.isActive) return res.status(200).json({ message: "Employee is inactive. Access denied." });
-                if (employee.verify !== "Verify") return res.status(200).json({ message: "Employee is not Verify. Access denied.", status: employee.verify });
-            }
-        }
+        // ✅ Check company & employee status
+        const statusCheck = await checkCompanyAndEmployeeStatus(user);
+        if (!statusCheck.status) return res.status(200).json(statusCheck);
 
+        // 🔹 Generate JWT Token
         const token = user.generateToken();
-
         res.cookie("token", token, {
-            httpOnly: true,       // Prevents client-side access
-            // secure: process.env.NODE_ENV === "production", // Secure in production
-            sameSite: "Strict",   // Prevents CSRF attacks
+            httpOnly: true,
+            sameSite: "Strict",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
         });
 
         return res.status(200).json({ message: "Login successful", token });
     } catch (error) {
-        console.log(error)
+        console.error("Login Error:", error);
         return res.status(500).json({ message: "Server error", error });
     }
 };
@@ -246,42 +240,29 @@ exports.getProfile = async (req, res) => {
 }
 
 
-// ✅ Forgot Password - Generate Reset Token
+// 🔹 Forgot Password Controller
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
-
-        // 🔸 Validate email
         if (!email) return res.status(400).json({ message: "Email is required" });
 
-        // 🔸 Check if user exists
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        if (user.role === "Employee" || user.role === "CompanyAdmin") {
-            const company = await Company.findById(user.company)
-            if (!company.isActive) return res.status(200).json({ message: "Company is inactive. Access denied." });
-            if (user.role === "Employee") {
-                const employee = await Employee.findOne({ user })
-                if (!employee.isActive) return res.status(200).json({ message: "Employee is inactive. Access denied." });
-                if (employee.verify !== "Verify") return res.status(200).json({ message: "Employee is not Verify. Access denied.", status: employee.verify });
-            }
-        }
+        // ✅ Check company & employee status
+        const statusCheck = await checkCompanyAndEmployeeStatus(user);
+        if (!statusCheck.status) return res.status(200).json(statusCheck);
 
-        // 🔸 Generate Reset Token
+        // 🔹 Generate Reset Token
         const resetToken = crypto.randomBytes(32).toString("hex");
-        const tokenExpire = Date.now() + 15 * 60 * 1000; // Expires in 15 minutes
-
-        user.forgotPassword.token = resetToken;
-        user.forgotPassword.tokenExpire = tokenExpire;
+        user.forgotPassword = { token: resetToken, tokenExpire: Date.now() + 15 * 60 * 1000 }; // 15 min expiry
         await user.save();
 
-        // 🔸 Send Email with Reset Link
+        // 🔹 Send Email with Reset Link
         const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
         const message = `You requested a password reset. Click on the link below to reset your password:\n\n ${resetUrl}\n\nThis link will expire in 15 minutes.`;
 
         await sendEmail(user.email, "Password Reset Request", message);
-
         return res.status(200).json({ message: "Password reset link sent to email" });
     } catch (error) {
         console.error("Forgot Password Error:", error);

@@ -46,6 +46,11 @@ const companySchema = new mongoose.Schema(
       required: [true, 'Owner is required'],
     },
     employees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
+    verify: {
+      type: String,
+      enum: ['Pending', 'Verify', 'Rejected'],
+      default: 'Pending',
+    },
     isActive: {
       type: Boolean,
       default: true,
