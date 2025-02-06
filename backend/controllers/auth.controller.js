@@ -125,7 +125,7 @@ exports.registerEmployee = async (req, res) => {
         if (existingUser) return res.status(400).json({ message: "Email or Phone already exists" });
 
         // 🔸 Find the company
-        const company = await Company.findById(companyId);
+        const company = await Company.findById(companyId).populate("owner");
         if (!company) return res.status(404).json({ message: "Company not found" });
         if (!company.isActive) return res.status(403).json({ message: "Company is inactive" });
 
@@ -162,6 +162,12 @@ exports.registerEmployee = async (req, res) => {
 
         await newEmployee.save();
 
+        const msg = `
+            Dear ${company.owner.name},\n\nA new employee, ${newEmployee.name}, has registered under ${company.name}. Please verify or delete the request.\n\nBest regards,\n${company.name}
+        `
+
+        await sendEmail(company.owner.email, "Employee Verification Required", msg);
+
         return res.status(201).json({ message: "Employee registered successfully, wait for you verification", token });
     } catch (error) {
         console.error("Employee Registration Error:", error);
@@ -181,7 +187,7 @@ exports.loginUser = async (req, res) => {
 
         // ✅ Check company & employee status
         const statusCheck = await checkCompanyAndEmployeeStatus(user);
-        if (!statusCheck.status) return res.status(200).json(statusCheck);
+        if (!statusCheck.status) return res.status(403).json(statusCheck);
 
         // 🔹 Generate JWT Token
         const token = user.generateToken();

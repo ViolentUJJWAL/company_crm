@@ -21,7 +21,11 @@ app.get("/", (req, res)=>{
 })
 
 const authRoutes = require("./routes/auth.routes")
+const superAdminRoutes = require("./routes/superAdmin.routes")
+const companyRoutes = require("./routes/company.routes")
 
 app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/super-admin", superAdminRoutes)
+app.use("/api/v1/company", companyRoutes)
 
 module.exports = app;
