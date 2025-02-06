@@ -3,6 +3,7 @@ import "./App.css";
 import Layout from "./Layout/Layout";
 import { BrowserRouter, Routes, Route } from "react-router";
 import CompanyRegistration from "./Components/Registration/CompanyRegistration";
+import Lead from './Components/Leads/Lead'
 
 function App() {
   const [count, setCount] = useState(0);
@@ -18,6 +19,9 @@ function App() {
               <br />
               Frontend Setup
             </h1>
+          </Layout>} />
+          <Route path="/lead" element={<Layout>
+            <Lead/>
           </Layout>} />
           <Route path="/register" element={<CompanyRegistration />} />
         </Routes>
