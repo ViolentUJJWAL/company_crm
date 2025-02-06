@@ -3,6 +3,7 @@ import "./App.css";
 import Layout from "./Layout/Layout";
 import { BrowserRouter, Routes, Route } from "react-router";
 import CompanyRegistration from "./Components/Registration/CompanyRegistration";
+import EmployeeRegistration from "./Components/Registration/EmployeeRegistration";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -19,7 +20,8 @@ function App() {
               Frontend Setup
             </h1>
           </Layout>} />
-          <Route path="/register" element={<CompanyRegistration />} />
+          <Route path="/company-register" element={<CompanyRegistration />} />
+          <Route path="/employee-register" element={<EmployeeRegistration />} />
         </Routes>
       </BrowserRouter>
     </>

@@ -12,7 +12,7 @@ exports.registerSuperAdmin = async (req, res) => {
         const { name, email, phoneNo, password, supreAdmincreatePassword } = req.body;
 
         // 🔸 Validation: Check required fields
-        if (!name || !email || !phoneNo || !password || supreAdmincreatePassword) {
+        if (!name || !email || !phoneNo || !password || !supreAdmincreatePassword) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
