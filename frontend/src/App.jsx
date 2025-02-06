@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./App.css";
+// import "./App.css";
 import Layout from "./Layout/Layout";
 import { BrowserRouter, Routes, Route } from "react-router";
 import CompanyRegistration from "./Components/Registration/CompanyRegistration";

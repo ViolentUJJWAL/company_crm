@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import authServices from "../../services/authServices";
 const EmployeeRegistration = () => {
   const [companies, setCompanies] = useState([]);
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const EmployeeRegistration = () => {
 
   const fetchCompanies = async () => {
     try {
-      console.log('companies Fetched')
+      console.log("companies Fetched");
       // const response = await axios.get("/api/companies");
       // setCompanies(response.data.filter(company => company.isActive));
     } catch (err) {
@@ -79,13 +79,14 @@ const EmployeeRegistration = () => {
       formDataToSend.append("address", JSON.stringify(formData.address));
       formDataToSend.append("image", formData.image);
 
-      // const response = await axios.post("/api/employee/register", formDataToSend, {
-      //   headers: {
-      //     "Content-Type": "multipart/form-data",
-      //   },
-      // });
+      const response = await authServices.registerEmployee(
+        "/api/employee/register",
+        formDataToSend
+      );
 
-      setSuccess("Employee registered successfully! Please wait for verification.");
+      setSuccess(
+        "Employee registered successfully! Please wait for verification."
+      );
       setFormData({
         name: "",
         email: "",
@@ -102,13 +103,22 @@ const EmployeeRegistration = () => {
         image: null,
       });
     } catch (err) {
-      setError(err.response?.data?.message || "Server error. Please try again.");
+      setError(
+        err.response?.data?.message || "Server error. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const InputField = ({ label, name, type = "text", value, onChange, required = true }) => (
+  const InputField = ({
+    label,
+    name,
+    type = "text",
+    value,
+    onChange,
+    required = true,
+  }) => (
     <div className="flex-1 min-w-[250px]">
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {label}
@@ -210,7 +220,9 @@ const EmployeeRegistration = () => {
             </div>
 
             <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Address Details</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Address Details
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField
                   label="Country"
@@ -260,9 +272,11 @@ const EmployeeRegistration = () => {
               disabled={loading}
               className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-xl font-medium 
                 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
-                transition-all duration-200 ease-in-out ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                transition-all duration-200 ease-in-out ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
             >
-              {loading ? 'Registering...' : 'Register as Employee'}
+              {loading ? "Registering..." : "Register as Employee"}
             </button>
           </form>
         </div>

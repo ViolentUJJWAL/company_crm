@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import authServices from "../../services/authServices"; // Adjust the import path as needed
+
 const CompanyRegistration = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -65,40 +67,29 @@ const CompanyRegistration = () => {
       formDataToSend.append("address", JSON.stringify(formData.address));
       formDataToSend.append("image", formData.image);
 
-      //   const response = await axios.post(
-      //     "/api/company/register",
-      //     formDataToSend,
-      //     {
-      //       headers: {
-      //         "Content-Type": "multipart/form-data",
-      //       },
-      //     }
-      //   );
+      // Call the registerCompany service
+      const response = await authServices.registerCompany(formDataToSend);
 
-      //   if (response.status === 201) {
-      //     setSuccess("Company registered successfully!");
-      //     setFormData({
-      //       name: "",
-      //       companyName: "",
-      //       email: "",
-      //       companyEmail: "",
-      //       phoneNo: "",
-      //       companyPhoneNo: "",
-      //       password: "",
-      //       industry: "",
-      //       address: {
-      //         country: "",
-      //         state: "",
-      //         city: "",
-      //         pincode: "",
-      //       },
-      //       image: null,
-      //     });
-      //   }
+      setSuccess("Company registered successfully!");
+      setFormData({
+        name: "",
+        companyName: "",
+        email: "",
+        companyEmail: "",
+        phoneNo: "",
+        companyPhoneNo: "",
+        password: "",
+        industry: "",
+        address: {
+          country: "",
+          state: "",
+          city: "",
+          pincode: "",
+        },
+        image: null,
+      });
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Server error. Please try again."
-      );
+      setError(err || "Server error. Please try again.");
     }
   };
 

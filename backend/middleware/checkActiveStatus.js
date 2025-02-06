@@ -5,15 +5,11 @@ const Employee = require("../models/employee.model");
 const checkActiveStatus = async (req, res, next) => {
   try {
     const user = req.user
-    if (user.role === "Employee" || user.role === "CompanyAdmin") {
-      const company = await Company.findById(user.company)
-      if (!company.isActive) return res.status(200).json({ message: "Company is inactive. Access denied." });
-      if (user.role === "Employee") {
-        const employee = await Employee.findOne({ user })
-        if (!employee.isActive) return res.status(200).json({ message: "Employee is inactive. Access denied." });
-        if (employee.verify !== "Verify") return res.status(200).json({ message: "Employee is not Verify. Access denied.", status: employee.verify });
-      }
-    }
+    
+    // ✅ Check company & employee status
+    const statusCheck = await checkCompanyAndEmployeeStatus(user);
+    if (!statusCheck.status) return res.status(200).json(statusCheck);
+
     next();
   } catch (error) {
     console.error("Company Status Check Error:", error);
