@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
 
       <main
         className={`pt-16 min-h-screen transition-all duration-300
-        ${isSidebarOpen ? "ml-64" : "ml-20"}`}
+        ${isSidebarOpen ? "ml-48" : "ml-15"}`}
       >
         <div className="p-6">{children}</div>
       </main>

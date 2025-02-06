@@ -1,17 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import authServices from "../../services/authServices";
 
-const CompanyRegistration = () => {
+const EmployeeRegistration = () => {
+  const [companies, setCompanies] = useState([]);
   const [formData, setFormData] = useState({
-    ownerName: "",
-    companyName: "",
-    ownerEmail: "",
-    companyEmail: "",
-    ownerPhoneNo: "",
-    companyPhoneNo: "",
+    name: "",
+    email: "",
+    phoneNo: "",
     password: "",
-    industry: "",
+    companyId: "",
+    designation: "",
     address: {
       country: "",
       state: "",
@@ -24,6 +23,20 @@ const CompanyRegistration = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeSection, setActiveSection] = useState("personal");
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      console.log("companies Fetched");
+      // const response = await
+      setCompanies(response.data);
+    } catch (err) {
+      console.error("Error fetching companies:", err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,19 +81,16 @@ const CompanyRegistration = () => {
         }
       }
 
-      const response = await authServices.registerCompany(formDataToSend);
-      console.log("response", response);
+      const response = await authServices.registerEmployee(formDataToSend);
       if (response.message) {
-        setSuccess("Company registered successfully!");
+        setSuccess("Employee registered successfully!");
         setFormData({
-          ownerName: "",
-          companyName: "",
-          ownerEmail: "",
-          companyEmail: "",
-          ownerPhoneNo: "",
-          companyPhoneNo: "",
+          name: "",
+          email: "",
+          phoneNo: "",
           password: "",
-          industry: "",
+          companyId: "",
+          designation: "",
           address: {
             country: "",
             state: "",
@@ -103,10 +113,10 @@ const CompanyRegistration = () => {
             <div className="absolute inset-0 bg-black opacity-10" />
             <div className="relative">
               <h2 className="text-4xl font-bold text-white text-center">
-                Register Your Company
+                Employee Registration
               </h2>
               <p className="mt-3 text-blue-100 text-center text-lg">
-                Join our business community and start your journey
+                Join our workplace community
               </p>
             </div>
           </div>
@@ -125,14 +135,14 @@ const CompanyRegistration = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveSection("company")}
+              onClick={() => setActiveSection("professional")}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                activeSection === "company"
+                activeSection === "professional"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              Company Details
+              Professional Details
             </button>
           </div>
 
@@ -156,27 +166,27 @@ const CompanyRegistration = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input
                   type="text"
-                  name="ownerName"
-                  placeholder="Owner Name"
-                  value={formData.ownerName}
+                  name="name"
+                  placeholder="Full Name"
+                  value={formData.name}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
                   required
                 />
                 <input
                   type="email"
-                  name="ownerEmail"
-                  placeholder="Owner Email"
-                  value={formData.ownerEmail}
+                  name="email"
+                  placeholder="Email Address"
+                  value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
                   required
                 />
                 <input
                   type="text"
-                  name="ownerPhoneNo"
-                  placeholder="Owner Phone Number"
-                  value={formData.ownerPhoneNo}
+                  name="phoneNo"
+                  placeholder="Phone Number"
+                  value={formData.phoneNo}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
                   required
@@ -195,42 +205,29 @@ const CompanyRegistration = () => {
 
             <div
               className={`space-y-8 ${
-                activeSection === "company" ? "block" : "hidden"
+                activeSection === "professional" ? "block" : "hidden"
               }`}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input
-                  type="text"
-                  name="companyName"
-                  placeholder="Company Name"
-                  value={formData.companyName}
+                <select
+                  name="companyId"
+                  value={formData.companyId}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
                   required
-                />
-                <input
-                  type="email"
-                  name="companyEmail"
-                  placeholder="Company Email"
-                  value={formData.companyEmail}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
-                  required
-                />
+                >
+                  <option value="">Select Company</option>
+                  {companies.map((company) => (
+                    <option key={company._id} value={company._id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="text"
-                  name="companyPhoneNo"
-                  placeholder="Company Phone Number"
-                  value={formData.companyPhoneNo}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
-                  required
-                />
-                <input
-                  type="text"
-                  name="industry"
-                  placeholder="Industry"
-                  value={formData.industry}
+                  name="designation"
+                  placeholder="Designation"
+                  value={formData.designation}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-400 hover:bg-gray-100"
                   required
@@ -282,17 +279,17 @@ const CompanyRegistration = () => {
                   name="image"
                   onChange={handleFileChange}
                   className="hidden"
-                  id="company-logo"
+                  id="profile-image"
                   required
                 />
                 <label
-                  htmlFor="company-logo"
+                  htmlFor="profile-image"
                   className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors duration-200"
                 >
                   <div className="text-center">
                     <Camera className="mx-auto h-12 w-12 text-gray-400" />
                     <span className="mt-2 block text-sm font-medium text-gray-600">
-                      Upload Company Logo
+                      Upload Profile Picture
                     </span>
                   </div>
                 </label>
@@ -302,10 +299,10 @@ const CompanyRegistration = () => {
             <button
               type="submit"
               className={`${
-                activeSection === "company" ? "block" : "hidden"
+                activeSection === "professional" ? "block" : "hidden"
               } w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out transform hover:-translate-y-0.5`}
             >
-              Register Company
+              Register as Employee
             </button>
           </form>
         </div>
@@ -314,4 +311,4 @@ const CompanyRegistration = () => {
   );
 };
 
-export default CompanyRegistration;
+export default EmployeeRegistration;

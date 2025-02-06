@@ -13,8 +13,8 @@ const Sidebar = ({ isOpen }) => {
 
   return (
     <aside
-      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white shadow-lg transition-all duration-300 z-20 
-      ${isOpen ? 'w-64' : 'w-20'}`}
+      className={`fixed left-0 top-14 h-[calc(100vh-4rem)] bg-white shadow-lg transition-all duration-300 z-20 
+      ${isOpen ? 'w-48' : 'w-15'}`}
     >
       <div className="flex flex-col py-4">
         {menuItems.map((item, index) => (
