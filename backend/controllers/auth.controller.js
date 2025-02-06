@@ -37,20 +37,20 @@ exports.registerSuperAdmin = async (req, res) => {
 
         await newSuperAdmin.save();
 
-        res.status(201).json({ message: "SuperAdmin registered successfully" });
+        return res.status(201).json({ message: "SuperAdmin registered successfully" });
     } catch (error) {
         console.error("SuperAdmin Registration Error:", error);
-        res.status(500).json({ message: "Server error", error });
+        return res.status(500).json({ message: "Server error", error });
     }
 };
 
 // ✅ Company Registration
 exports.registerCompany = async (req, res) => {
     try {
-        const { name, companyName, email, companyEmail, phoneNo, companyPhoneNo, password, industry, address } = req.body;
+        const { ownerName, companyName, ownerEmail, companyEmail, ownerPhoneNo, companyPhoneNo, password, industry, address } = req.body;
 
         // 🔸 Validation: Check required fields
-        if (!name || !companyName || !email || companyEmail || !phoneNo || companyPhoneNo || !password || !industry || !address) {
+        if (!ownerName || !companyName || !ownerEmail || companyEmail || !ownerPhoneNo || companyPhoneNo || !password || !industry || !address) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -73,9 +73,9 @@ exports.registerCompany = async (req, res) => {
 
         // 🔸 Create User (Company Owner)
         const newUser = new User({
-            name,
-            email,
-            phoneNo,
+            name: ownerName,
+            email: ownerEmail,
+            phoneNo: ownerPhoneNo,
             password,
             role: "CompanyAdmin",
         });
@@ -99,10 +99,10 @@ exports.registerCompany = async (req, res) => {
         newUser.company = newCompany._id;
         await newUser.save();
 
-        res.status(201).json({ message: "Company registered successfully" });
+        return res.status(201).json({ message: "Company registered successfully" });
     } catch (error) {
         console.error("Company Registration Error:", error);
-        res.status(500).json({ message: "Server error", error });
+        returnres.status(500).json({ message: "Server error", error });
     }
 };
 
@@ -158,10 +158,10 @@ exports.registerEmployee = async (req, res) => {
 
         await newEmployee.save();
 
-        res.status(201).json({ message: "Employee registered successfully, wait for you verification", token });
+        return res.status(201).json({ message: "Employee registered successfully, wait for you verification", token });
     } catch (error) {
         console.error("Employee Registration Error:", error);
-        res.status(500).json({ message: "Server error", error });
+        return res.status(500).json({ message: "Server error", error });
     }
 };
 
