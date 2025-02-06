@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       ref: "Company",
       default: null,
     },
-    forgetPassword: {
+    forgotPassword: {
       token: {type: String},
       tokenExpire: {type: Date},
     },
