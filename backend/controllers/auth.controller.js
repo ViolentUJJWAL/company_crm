@@ -3,6 +3,7 @@ const Employee = require("../models/employee.model");
 const User = require("../models/user.model");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
+const { uploadOnCloudinary } = require("../utils/cloudinary");
 
 
 // ✅ Super Admin Registration
