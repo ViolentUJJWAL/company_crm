@@ -13,6 +13,10 @@ const authServices = {
 
   registerCompany: async (companyData) => {
     try {
+      console.log("ggfxghvjctttttttttttttttttttt ");
+      for (let pair of companyData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
       const response = await api.post("/auth/register/company", companyData);
       return response.data;
     } catch (error) {
