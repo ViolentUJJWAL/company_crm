@@ -5,7 +5,7 @@ import { X, Edit, Eye, Plus } from "lucide-react";
 // Separate RoleForm component
 const RoleForm = ({ isEditing, formData, setFormData, onSubmit, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0  bg-gray-500/40 shadow-2xl bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">
@@ -87,7 +87,7 @@ const RoleForm = ({ isEditing, formData, setFormData, onSubmit, onClose }) => {
 
 // Separate ViewRoleModal component
 const ViewRoleModal = ({ selectedRole, onClose }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+  <div className="fixed inset-0 bg-gray-500/40 bg-opacity-50 flex items-center justify-center p-4">
     <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Role Details</h2>
