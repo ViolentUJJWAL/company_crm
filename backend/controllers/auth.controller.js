@@ -216,7 +216,6 @@ exports.registerEmployee = async (req, res) => {
       .status(201)
       .json({
         message: "Employee registered successfully, wait for you verification",
-        token,
       });
   } catch (error) {
     console.error("Employee Registration Error:", error);

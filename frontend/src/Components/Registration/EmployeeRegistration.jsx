@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import authServices from "../../services/authServices";
+import { getCompanies } from "../../services/companyServices";
 
 const EmployeeRegistration = () => {
   const [companies, setCompanies] = useState([]);
@@ -30,8 +31,8 @@ const EmployeeRegistration = () => {
 
   const fetchCompanies = async () => {
     try {
-      console.log("companies Fetched");
-      // const response = await
+      const response = await getCompanies();
+      console.log("companies Fetched", response.data);
       setCompanies(response.data);
     } catch (err) {
       console.error("Error fetching companies:", err);
