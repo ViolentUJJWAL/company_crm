@@ -6,10 +6,10 @@ import { MdEmail } from "react-icons/md";
 import { FaWhatsapp, FaLink } from "react-icons/fa6";
 import { IoPersonAdd } from "react-icons/io5";
 import { FiSend } from "react-icons/fi";
-import leadsJson from './leads.json'; // Import the JSON file
+import leadsJson from './leads.json'; 
 
 const LeadCard = ({ lead }) => (
-  <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 text-left">
+  <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 text-left hover:shadow-[0_8px_10px_rgba(0,0,0,0.2)] transition duration-300   ">
     <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700">{lead.label}</span>
     <h3 className="font-semibold text-lg mt-2">{lead.name}</h3>
     <p className="text-gray-600">📞 {lead.phone}</p>
@@ -203,7 +203,15 @@ function Lead() {
             <Droppable key={column.title} droppableId={column.title}>
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps} className={`p-4 rounded-lg shadow-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
-                  <h3 className="font-bold mb-2 bg-gray-200 p-3">{column.title} ({column.count})</h3>
+                  <h3 className={` font-bold mb-2  p-3 flex justify-between ${
+                     column.title === "New"
+                     ? "bg-teal-300 " : column.title === "Processing" ? "bg-yellow-300" : column.title=== "Close-by" ? "bg-purple-300" :column.title === "Confirm" ? "bg-green-300" :"bg-red-300"
+                   
+                  }`}> <p>{column.title}</p> <div className={`w-[25px] h-[25px] rounded-3xl bg-amber-700 text-center ${
+                    column.title === "New"
+                    ? "bg-teal-200 " : column.title === "Processing" ? "bg-yellow-200" : column.title=== "Close-by" ? "bg-purple-200" :column.title === "Confirm" ? "bg-green-200" :"bg-red-200"
+                  
+                 } `}>{column.count}</div></h3>
                   {column.leads.map((lead, index) => (
                     <Draggable key={lead.phone} draggableId={lead.phone} index={index}>
                       {(provided) => (

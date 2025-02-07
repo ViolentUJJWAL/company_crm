@@ -6,6 +6,8 @@ import CompanyRegistration from "./Components/Registration/CompanyRegistration";
 import EmployeeRegistration from "./Components/Registration/EmployeeRegistration";
 import Lead from './Components/Leads/Lead'
 import Dashboard from "./Components/Dashboard/Dashboard";
+import Reminder from "./Components/Reminder/Reminder";
+import ReminderForm from "./Components/Reminder/ReminderForm";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -23,7 +25,8 @@ function App() {
           <Route path="/company-register" element={<CompanyRegistration />} />
           <Route path="/employee-register" element={<EmployeeRegistration />} />
           <Route path="/lead" element={<Layout><Lead /></Layout>} />
-          {/* <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} /> */}
+          <Route path="/reminder" element={<Layout><Reminder /></Layout>} />
+          <Route path="/reminderForm" element={<Layout><ReminderForm /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>

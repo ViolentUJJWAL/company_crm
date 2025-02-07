@@ -8,6 +8,7 @@ import {
   Settings,
   MessageSquare,
   Filter ,
+  Bell
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -16,6 +17,7 @@ const Sidebar = ({ isOpen }) => {
     { icon: Home, label: "Dashboard", navigate: "/" },
     { icon: FileText, label: "Documents", navigate: "/df" },
     { icon: Filter , label: "Lead", navigate: "/lead" },
+    { icon: Bell , label: "Reminder", navigate: "/reminder" },
     { icon: Users, label: "Users", navigate: "/df" },
     { icon: Calendar, label: "Calendar", navigate: "/df" },
     { icon: MessageSquare, label: "Messages", navigate: "/df" },
