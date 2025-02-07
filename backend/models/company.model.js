@@ -51,6 +51,10 @@ const companySchema = new mongoose.Schema(
       enum: ['Pending', 'Verify', 'Rejected'],
       default: 'Pending',
     },
+    verifyBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
     isActive: {
       type: Boolean,
       default: true,

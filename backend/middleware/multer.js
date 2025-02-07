@@ -1,12 +1,20 @@
+const fs = require('fs');
 const multer = require('multer');
+
+const uploadDir = 'backend/temp/';
+
+// Ensure the directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'backend/temp/') // Make sure this directory exists
+    cb(null, uploadDir); // Use the validated directory path
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop())
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
   }
 });
 
@@ -22,4 +30,4 @@ const upload = multer({
   }
 });
 
-module.exports = upload
+module.exports = upload;

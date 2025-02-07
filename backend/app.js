@@ -1,27 +1,31 @@
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
-const morgan = require("morgan")
-const cors = require('cors');
-const express = require('express');
-const cookieParser = require('cookie-parser');
+const morgan = require("morgan");
+const cors = require("cors");
+const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
 
-app.use(morgan("dev"))
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors(
-    {
-        origin: ["*", "http://localhost:5173", "http://localhost:5174"],
-    }
-));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    credentials: true,
+  })
+);
 
-
-app.get("/", (req, res)=>{
-    res.status(200).send("Setup backend")
-})
+app.get("/", (req, res) => {
+  res.status(200).send("Setup backend");
+});
 
 const authRoutes = require("./routes/auth.routes")
+const superAdminRoutes = require("./routes/superAdmin.routes")
+const companyRoutes = require("./routes/company.routes")
 
 app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/super-admin", superAdminRoutes)
+app.use("/api/v1/company", companyRoutes)
 
 module.exports = app;

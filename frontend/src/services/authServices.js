@@ -13,6 +13,10 @@ const authServices = {
 
   registerCompany: async (companyData) => {
     try {
+      console.log("ggfxghvjctttttttttttttttttttt ");
+      for (let pair of companyData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
       const response = await api.post("/auth/register/company", companyData);
       return response.data;
     } catch (error) {
@@ -76,7 +80,9 @@ const authServices = {
 
   resetPassword: async (token, newPassword) => {
     try {
-      const response = await api.post("/auth/reset-password", {
+      console.log("token", token);
+      console.log("newPassword", newPassword);
+      const response = await api.put("/auth/reset-password", {
         token,
         newPassword,
       });
