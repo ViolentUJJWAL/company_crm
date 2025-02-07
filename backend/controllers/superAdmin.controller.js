@@ -4,7 +4,7 @@ const sendEmail = require("../utils/sendMail");
 // 🔹 Common function to fetch companies based on verification status
 const fetchCompanies = async (status, res, message) => {
     try {
-        const companies = await Company.find({ verify: status }).populate("owner").populate("employees");
+        const companies = await Company.find({ verify: status, isActive: true }).populate("owner").populate("employees");
         if (!companies.length) return res.status(404).json({ message });
 
         return res.status(200).json({ message: `${status} companies fetched successfully`, data: companies });
@@ -72,6 +72,23 @@ exports.toggleCompanyStatus = async (req, res) => {
 
     } catch (error) {
         console.error("Toggle Company Status Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+// ✅ get all Companies 
+exports.getAllCompanies  = async (req, res) => {
+    try {
+        // 🔹 Find company
+        const company = await Company.find().populate("owner", "name email phoneNo");
+        if (!company) return res.status(404).json({ message: "Company not found" });
+
+        return res.status(200).json({ 
+            message: `Companies fetched successfully `, 
+            company 
+        });
+
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({ message: "Server error", error });
     }
 };

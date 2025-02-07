@@ -1,0 +1,123 @@
+const Company = require("../../models/company.model");
+const Employee = require("../../models/employee.model");
+const Role = require("../../models/role.model");
+const sendEmail = require("../../utils/sendMail");
+
+// ✅ Verify Employee & Assign Role
+exports.verifyEmployee = async (req, res) => {
+    try {
+        const { employeeId, roleId } = req.body;
+
+        if(!employeeId || !roleId){
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const company = await Company.findById(req.user.company)
+
+        // 🔹 Find the employee
+        const employee = await Employee.findOne({_id: employeeId, company: company._id}).populate("user");
+        if (!employee) return res.status(404).json({ message: "Employee not found" });
+
+        // 🔹 Check if the company is verified
+        if (!employee.company.equals(company._id)) {
+            return res.status(400).json({ message: "Your company and Employee's company is not same" });
+        }
+
+        // 🔹 Assign Role & Verify Employee
+        const role = await Role.findOne({_id: roleId, company: company._id});
+        if (!role) return res.status(404).json({ message: "Role not found" });
+
+        employee.role = role._id;
+        employee.verify = "Verify";
+        await employee.save();
+
+        // 🔹 Send Verification Email
+        const subject = "Employee Verified Successfully";
+        const message = `Dear ${employee.user.name},\n\nYour employment at "${employee.company.name}" has been successfully verified, and you have been assigned the role "${role.name}".\n\nBest regards,\nSupport Team`;
+
+        await sendEmail(employee.user.email, subject, message);
+
+        return res.status(200).json({ message: "Employee verified and role assigned successfully", employee });
+
+    } catch (error) {
+        console.error("Verify Employee Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+
+// ✅ Fetch Verified Employees
+exports.getVerifiedEmployees = async (req, res) => {
+    try {
+        const employees = await Employee.find({ verify: "Verify", isActive: true, company: req.user.company })
+            .populate("user")
+            .populate("company", "name")
+            .populate("role");
+
+        if (employees.length === 0) {
+            return res.status(404).json({ message: "No verified employees found" });
+        }
+
+        return res.status(200).json({ message: "Verified employees fetched successfully", data: employees });
+
+    } catch (error) {
+        console.error("Fetch Verified Employees Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+
+// ✅ Fetch Unverified Employees
+exports.getUnverifiedEmployees = async (req, res) => {
+    try {
+        const employees = await Employee.find({ verify: { $ne: "Verify" }, isActive: true, company: req.user.company })
+            .populate("user")
+            .populate("company", "name");
+
+        if (employees.length === 0) {
+            return res.status(404).json({ message: "No unverified employees found" });
+        }
+
+        return res.status(200).json({ message: "Unverified employees fetched successfully", data: employees });
+
+    } catch (error) {
+        console.error("Fetch Unverified Employees Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+
+exports.getAllEmployees = async (req, res) => {
+    try {
+        const employees = await Employee.find({ company: req.user.company })
+            .populate("user")
+            .populate("company", "name");
+
+        if (employees.length === 0) {
+            return res.status(404).json({ message: "No employees found" });
+        }
+
+        return res.status(200).json({ message: "employees fetched successfully", data: employees });
+    } catch (error) {
+        console.error("Fetch Employees Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+}
+
+exports.getEmployeeById = async (req, res) => {
+    try {
+
+        const {employeeId } = req.params
+
+        const employee = await Employee.findOne({ _id: employeeId, company: req.user.company })
+            .populate("user")
+            .populate("role")
+            .populate("company", "name");
+
+        if (!employee) {
+            return res.status(404).json({ message: "No employees found" });
+        }
+
+        return res.status(200).json({ message: "employee fetched successfully", data: employee });
+    } catch (error) {
+        console.error("Fetch Employees Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+}
