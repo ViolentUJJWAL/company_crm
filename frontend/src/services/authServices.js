@@ -80,7 +80,9 @@ const authServices = {
 
   resetPassword: async (token, newPassword) => {
     try {
-      const response = await api.post("/auth/reset-password", {
+      console.log("token", token);
+      console.log("newPassword", newPassword);
+      const response = await api.put("/auth/reset-password", {
         token,
         newPassword,
       });

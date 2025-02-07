@@ -23,3 +23,4 @@ const leadForSchema = new mongoose.Schema(
 
 const LeadFor = mongoose.model('LeadFor', leadForSchema);
 module.exports = LeadFor;
+  

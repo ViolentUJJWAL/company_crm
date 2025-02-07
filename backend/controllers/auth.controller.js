@@ -167,10 +167,11 @@ exports.registerEmployee = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: "Email or Phone already exists" });
 
-        // 🔸 Find the company
-        const company = await Company.findById(companyId).populate("owner");
-        if (!company) return res.status(404).json({ message: "Company not found" });
-        if (!company.isActive) return res.status(403).json({ message: "Company is inactive" });
+    // 🔸 Find the company
+    const company = await Company.findById(companyId).populate("owner");
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    if (!company.isActive)
+      return res.status(403).json({ message: "Company is inactive" });
 
     const file = req.file;
     if (!file) return res.status(400).json({ nessage: "No image provided." });
@@ -204,20 +205,17 @@ exports.registerEmployee = async (req, res) => {
       company: companyId,
     });
 
-        await newEmployee.save();
+    await newEmployee.save();
 
-        const msg = `
+    const msg = `
             Dear ${company.owner.name},\n\nA new employee, ${newEmployee.name}, has registered under ${company.name}. Please verify or delete the request.\n\nBest regards,\n${company.name}
-        `
+        `;
 
-        await sendEmail(company.owner.email, "Employee Verification Required", msg);
+    await sendEmail(company.owner.email, "Employee Verification Required", msg);
 
-    return res
-      .status(201)
-      .json({
-        message: "Employee registered successfully, wait for you verification",
-        token,
-      });
+    return res.status(201).json({
+      message: "Employee registered successfully, wait for you verification",
+    });
   } catch (error) {
     console.error("Employee Registration Error:", error);
     return res.status(500).json({ message: "Server error", error });
@@ -237,9 +235,9 @@ exports.loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-        // ✅ Check company & employee status
-        const statusCheck = await checkCompanyAndEmployeeStatus(user);
-        if (!statusCheck.status) return res.status(403).json(statusCheck);
+    // ✅ Check company & employee status
+    const statusCheck = await checkCompanyAndEmployeeStatus(user);
+    if (!statusCheck.status) return res.status(403).json(statusCheck);
 
     // 🔹 Generate JWT Token
     const token = user.generateToken();
@@ -361,6 +359,7 @@ exports.checkToken = async (req, res) => {
 // ✅ Reset Password
 exports.resetPassword = async (req, res) => {
   try {
+    console.log("req.body", req.body);
     const { token, newPassword } = req.body;
 
     // 🔸 Validate Inputs

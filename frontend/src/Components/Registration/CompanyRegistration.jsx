@@ -3,6 +3,8 @@ import { Camera } from "lucide-react";
 import authServices from "../../services/authServices";
 
 const CompanyRegistration = () => {
+  const [imagePreview, setImagePreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     ownerName: "",
     companyName: "",
@@ -45,16 +47,27 @@ const CompanyRegistration = () => {
   };
 
   const handleFileChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      image: e.target.files[0],
-    }));
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setIsSubmitting(true);
 
     try {
       const formDataToSend = new FormData();
@@ -90,8 +103,11 @@ const CompanyRegistration = () => {
           image: null,
         });
       }
+      setImagePreview(null);
     } catch (err) {
       setError(err.message || "Server error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -282,18 +298,44 @@ const CompanyRegistration = () => {
                   name="image"
                   onChange={handleFileChange}
                   className="hidden"
-                  id="company-logo"
+                  id="profile-image" // or company-logo
                   required
                 />
                 <label
-                  htmlFor="company-logo"
+                  htmlFor="profile-image" // or company-logo
                   className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition-colors duration-200"
                 >
                   <div className="text-center">
-                    <Camera className="mx-auto h-12 w-12 text-gray-400" />
-                    <span className="mt-2 block text-sm font-medium text-gray-600">
-                      Upload Company Logo
-                    </span>
+                    {imagePreview ? (
+                      <div className="relative w-32 h-32 mx-auto">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setImagePreview(null);
+                            setFormData((prev) => ({ ...prev, image: null }));
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Camera className="mx-auto h-12 w-12 text-gray-400" />
+                        <span className="mt-2 block text-sm font-medium text-gray-600">
+                          Upload{" "}
+                          {activeSection === "company"
+                            ? "Company Logo"
+                            : "Profile Picture"}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </label>
               </div>
@@ -301,11 +343,18 @@ const CompanyRegistration = () => {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className={`${
                 activeSection === "company" ? "block" : "hidden"
-              } w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out transform hover:-translate-y-0.5`}
+              } w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-4 px-6 rounded-xl font-medium 
+  ${
+    isSubmitting
+      ? "opacity-50 cursor-not-allowed"
+      : "hover:opacity-90 transform hover:-translate-y-0.5"
+  } 
+  transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
             >
-              Register Company
+              {isSubmitting ? "Submitting..." : "Register"}
             </button>
           </form>
         </div>
