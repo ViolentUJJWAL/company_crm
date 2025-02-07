@@ -1,16 +1,14 @@
-import React, { useState } from "react";
-import authServices from "../../services/authServices"; // Adjust the import path as needed
-
-const CompanyRegistration = () => {
+import React, { useState, useEffect } from "react";
+import authServices from "../../services/authServices";
+const EmployeeRegistration = () => {
+  const [companies, setCompanies] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
-    companyName: "",
     email: "",
-    companyEmail: "",
     phoneNo: "",
-    companyPhoneNo: "",
     password: "",
-    industry: "",
+    companyId: "",
+    designation: "",
     address: {
       country: "",
       state: "",
@@ -22,6 +20,21 @@ const CompanyRegistration = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      console.log("companies Fetched");
+      // const response = await axios.get("/api/companies");
+      // setCompanies(response.data.filter(company => company.isActive));
+    } catch (err) {
+      console.error("Error fetching companies:", err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,33 +66,34 @@ const CompanyRegistration = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
 
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
-      formDataToSend.append("companyName", formData.companyName);
       formDataToSend.append("email", formData.email);
-      formDataToSend.append("companyEmail", formData.companyEmail);
       formDataToSend.append("phoneNo", formData.phoneNo);
-      formDataToSend.append("companyPhoneNo", formData.companyPhoneNo);
       formDataToSend.append("password", formData.password);
-      formDataToSend.append("industry", formData.industry);
+      formDataToSend.append("companyId", formData.companyId);
+      formDataToSend.append("designation", formData.designation);
       formDataToSend.append("address", JSON.stringify(formData.address));
       formDataToSend.append("image", formData.image);
 
-      // Call the registerCompany service
-      const response = await authServices.registerCompany(formDataToSend);
+      const response = await authServices.registerEmployee(
+        "/api/employee/register",
+        formDataToSend
+      );
 
-      setSuccess("Company registered successfully!");
+      setSuccess(
+        "Employee registered successfully! Please wait for verification."
+      );
       setFormData({
         name: "",
-        companyName: "",
         email: "",
-        companyEmail: "",
         phoneNo: "",
-        companyPhoneNo: "",
         password: "",
-        industry: "",
+        companyId: "",
+        designation: "",
         address: {
           country: "",
           state: "",
@@ -89,7 +103,11 @@ const CompanyRegistration = () => {
         image: null,
       });
     } catch (err) {
-      setError(err || "Server error. Please try again.");
+      setError(
+        err.response?.data?.message || "Server error. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,10 +140,10 @@ const CompanyRegistration = () => {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="px-6 py-8 bg-gradient-to-r from-blue-600 to-indigo-600">
             <h2 className="text-3xl font-bold text-white text-center">
-              Register Your Company
+              Employee Registration
             </h2>
             <p className="mt-2 text-blue-100 text-center">
-              Fill in the details below to create your company account
+              Register as a new employee
             </p>
           </div>
 
@@ -143,52 +161,27 @@ const CompanyRegistration = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
-                label="Owner Name"
+                label="Full Name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
               />
               <InputField
-                label="Company Name"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Owner Email"
+                label="Email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
               />
-              <InputField
-                label="Company Email"
-                name="companyEmail"
-                type="email"
-                value={formData.companyEmail}
-                onChange={handleChange}
-              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
-                label="Owner Phone Number"
+                label="Phone Number"
                 name="phoneNo"
                 value={formData.phoneNo}
                 onChange={handleChange}
               />
-              <InputField
-                label="Company Phone Number"
-                name="companyPhoneNo"
-                value={formData.companyPhoneNo}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField
                 label="Password"
                 name="password"
@@ -196,10 +189,32 @@ const CompanyRegistration = () => {
                 value={formData.password}
                 onChange={handleChange}
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Company
+                </label>
+                <select
+                  name="companyId"
+                  value={formData.companyId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ease-in-out"
+                  required
+                >
+                  <option value="">Select Company</option>
+                  {companies.map((company) => (
+                    <option key={company._id} value={company._id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <InputField
-                label="Industry"
-                name="industry"
-                value={formData.industry}
+                label="Designation"
+                name="designation"
+                value={formData.designation}
                 onChange={handleChange}
               />
             </div>
@@ -240,22 +255,28 @@ const CompanyRegistration = () => {
 
             <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company Image
+                Profile Image
               </label>
               <input
                 type="file"
                 name="image"
                 onChange={handleFileChange}
                 className="w-full focus:outline-none"
+                accept="image/*"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out"
+              disabled={loading}
+              className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-xl font-medium 
+                hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+                transition-all duration-200 ease-in-out ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
             >
-              Register Company
+              {loading ? "Registering..." : "Register as Employee"}
             </button>
           </form>
         </div>
@@ -264,4 +285,4 @@ const CompanyRegistration = () => {
   );
 };
 
-export default CompanyRegistration;
+export default EmployeeRegistration;
