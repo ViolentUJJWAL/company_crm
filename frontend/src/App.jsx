@@ -8,6 +8,8 @@ import Lead from './Components/Leads/Lead'
 import Dashboard from "./Components/Dashboard/Dashboard";
 import Login from "./Components/Login/Login";
 import ResetPasswordForm from "./Components/Login/ResetPasswordForm";
+import ReminderList from "./Components/Reminder/Reminder";
+import ReminderForm from "./Components/Reminder/ReminderForm";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -23,6 +25,8 @@ function App() {
           <Route path="/employee-register" element={<EmployeeRegistration />} />
           <Route path="/reset-password/:token" element={<ResetPasswordForm/>} />
           <Route path="/lead" element={<Layout><Lead /></Layout>} />
+          <Route path="/reminder" element={<Layout><ReminderList /></Layout>} />
+          <Route path="/reminderForm" element={<Layout><ReminderForm /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
