@@ -9,16 +9,19 @@ const router = express.Router();
 router.get("/", getCompanies)
 
 // company employee
-router.use("/employee", authMiddleware, checkActiveStatus, checkRole("CompanyAdmin"), require("./companyRoutes/employees.routes") )
+router.use("/employee", authMiddleware, checkActiveStatus, require("./companyRoutes/employees.routes") )
 
 // company role
-router.use("/role", authMiddleware, checkActiveStatus, checkRole("CompanyAdmin"), require("./companyRoutes/role.routes") )
+router.use("/role", authMiddleware, checkActiveStatus, require("./companyRoutes/role.routes") )
 
 // leadFor
-router.use("/lead-for", authMiddleware, checkActiveStatus, checkRole("CompanyAdmin"), require("./companyRoutes/leadFor.routes") )
+router.use("/lead-for", authMiddleware, checkActiveStatus, require("./companyRoutes/leadFor.routes") )
 
 // leadSource
-router.use("/lead-source", authMiddleware, checkActiveStatus, checkRole("CompanyAdmin"), require("./companyRoutes/leadSource.routes") )
+router.use("/lead-source", authMiddleware, checkActiveStatus, require("./companyRoutes/leadSource.routes") )
+
+// leadStatusLabel
+router.use("/lead-status", authMiddleware, checkActiveStatus, require("./companyRoutes/leadStatusLabel.routes") )
 
 
 
