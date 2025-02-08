@@ -1,3 +1,4 @@
+const Lead = require("../../models/lead.model");
 const LeadStatusLabel = require("../../models/leadStatusLabel.model");
 
 
@@ -31,6 +32,30 @@ exports.updateLeadStatusLabel = async (req, res) => {
         await leadStatusLabel.save()
 
         return res.status(200).json({ message: "leadStatusLabel updated successfully", data: leadStatusLabel });
+
+    } catch (error) {
+        console.error("Update leadStatusLabel Error:", error);
+        return res.status(500).json({ message: "Server error", error });
+    }
+};
+
+
+exports.deleteLeadStatusLabel = async (req, res) => {
+    try {
+        const { leadStatusLabelId } = req.params;
+
+        const leadStatusLabel = await LeadStatusLabel.findOne({_id: leadStatusLabelId, company: req.user.company});
+
+        if (!leadStatusLabel) return res.status(404).json({ message: "leadStatusLabel not found" });
+
+        const leadWithDeleteStatusLabel = await Lead.find({status: leadStatusLabel._id})
+        if(leadWithDeleteStatusLabel.length > 0){
+            return res.status(400).json({ message: "leadStatusLabel use in lead" });
+        }
+
+        await LeadStatusLabel.findByIdAndDelete(leadStatusLabel._id)
+
+        return res.status(200).json({ message: "leadStatusLabel delete successfully", data: leadStatusLabel });
 
     } catch (error) {
         console.error("Update leadStatusLabel Error:", error);
