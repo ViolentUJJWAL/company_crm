@@ -33,7 +33,7 @@ const Sidebar = ({ isOpen }) => {
     { icon: Users, label: "Users", navigate: "/df" },
     { icon: Calendar, label: "Calendar", navigate: "/df" },
     { icon: MessageSquare, label: "Messages", navigate: "/df" },
-    { icon: Settings, label: "Settings", navigate: "/df" },
+    { icon: Settings, label: "Settings", navigate: "/settings" },
   ];
 
   const handleNavigation = (path) => {

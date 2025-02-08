@@ -1,11 +1,10 @@
 import api from "./api";
 
 class LeadStatusLabelService {
-  static BASE_URL = "/company/lead-status";
-
   static async addLeadStatusLabel(data) {
     try {
-      const response = await api.post("/company/lead-status");
+      console.log("data", data);
+      const response = await api.post("/company/lead-status", data);
       return response.data;
     } catch (error) {
       if (error.response?.status === 400) {

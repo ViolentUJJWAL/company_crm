@@ -37,7 +37,7 @@ export const handleApiError = (error) => {
 import api from "./api";
 // import { handleApiError } from "./apiResponse";
 
-export const roleService = {
+export const RoleServices = {
   createRole: async (roleData) => {
     try {
       console.log("roleData", roleData);

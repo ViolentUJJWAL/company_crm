@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { roleService } from "../../services/roleServices";
+import { RoleServices } from "../../services/RoleServices";
 import { X, Edit, Eye, Plus } from "lucide-react";
 
 // Separate RoleForm component
@@ -166,7 +166,7 @@ const RoleManagement = () => {
   }, []);
 
   const fetchRoles = async () => {
-    const response = await roleService.getActiveRoles();
+    const response = await RoleServices.getActiveRoles();
     if (response.status) {
       setRoles(response.data);
     }
@@ -176,8 +176,8 @@ const RoleManagement = () => {
     e.preventDefault();
     console.log("formData", formData);
     const response = isEditing
-      ? await roleService.updateRole(selectedRole._id, formData)
-      : await roleService.createRole(formData);
+      ? await RoleServices.updateRole(selectedRole._id, formData)
+      : await RoleServices.createRole(formData);
 
     if (response.status) {
       setIsModalOpen(false);
@@ -187,7 +187,8 @@ const RoleManagement = () => {
   };
 
   const handleEdit = async (role) => {
-    const response = await roleService.getRoleById(role._id);
+    const response = await RoleServices.getRoleById(role._id);
+    console.log("response", response);
     if (response.status) {
       setFormData(response.data);
       setSelectedRole(response.data);
@@ -197,7 +198,7 @@ const RoleManagement = () => {
   };
 
   const handleView = async (role) => {
-    const response = await roleService.getRoleById(role._id);
+    const response = await RoleServices.getRoleById(role._id);
     if (response.status) {
       setSelectedRole(response.data);
       setIsViewModalOpen(true);

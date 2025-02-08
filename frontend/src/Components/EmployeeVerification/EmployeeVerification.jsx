@@ -3,7 +3,7 @@ import {
   getUnverifiedEmployees,
   verifyEmployee,
 } from "../../services/employeeServices";
-import { roleService } from "../../services/roleServices";
+import { RoleServices } from "../../services/RoleServices";
 
 const EmployeeVerification = () => {
   const [employees, setEmployees] = useState([]);
@@ -20,7 +20,7 @@ const EmployeeVerification = () => {
     try {
       const [employeesResponse, rolesResponse] = await Promise.all([
         getUnverifiedEmployees(),
-        roleService.getActiveRoles(),
+        RoleServices.getActiveRoles(),
       ]);
 
       if (employeesResponse.data) {
