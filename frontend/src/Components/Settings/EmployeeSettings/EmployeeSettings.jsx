@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Check, AlertCircle, User } from "lucide-react";
-import { getAllEmployees } from "../../../services/employeeServices";
+import { getAllEmployees, toggleEmployeeStatus } from "../../../services/employeeServices";
 
 const EmployeeSettings = () => {
   const [employees, setEmployees] = useState([]);
@@ -25,24 +25,22 @@ const EmployeeSettings = () => {
     }
   };
 
-  //   const handleToggleStatus = async (employee) => {
-  //     try {
-  //       setIsLoading(true);
-  //       const response = await EmployeeServices.toggleActiveEmployee(
-  //         employee._id
-  //       );
-  //       if (response.status) {
-  //         setSuccess(response.message);
-  //         fetchEmployees();
-  //       } else {
-  //         setError(response.error || "Failed to toggle employee status");
-  //       }
-  //     } catch (error) {
-  //       setError("Failed to toggle employee status. Please try again.");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  const handleToggleStatus = async (employeeId) => {
+    try {
+      setIsLoading(true);
+      const response = await toggleEmployeeStatus(employeeId);
+      if (response.status) {
+        setSuccess(response.message);
+        fetchEmployees();
+      } else {
+        setError(response.error || "Failed to toggle employee status");
+      }
+    } catch (error) {
+      setError("Failed to toggle employee status. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Toggle Switch Component
   const ToggleSwitch = ({ isActive, onToggle, disabled }) => (
@@ -146,7 +144,7 @@ const EmployeeSettings = () => {
                       <div className="flex items-center gap-3">
                         <ToggleSwitch
                           isActive={employee.isActive}
-                          //   onToggle={() => handleToggleStatus(employee)}
+                          onToggle={() => handleToggleStatus(employee._id)}
                           disabled={isLoading}
                         />
                         <span className="text-sm text-gray-500">

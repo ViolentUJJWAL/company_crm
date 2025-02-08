@@ -52,3 +52,16 @@ export const verifyEmployee = async (employeeId, roleId) => {
     throw error.response ? error.response.data : error.message;
   }
 };
+
+// ✅ Change Employee active Status
+export const toggleEmployeeStatus = async (employeeId) => {
+  try {
+    console.log("Called");
+    const response = await api.put(
+      `/company/employee/change-active-status/${employeeId}`
+    );
+    return response;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
