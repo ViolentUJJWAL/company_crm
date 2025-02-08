@@ -13,6 +13,12 @@ exports.createRole = async (req, res) => {
         .json({ message: "Role name and company ID are required" });
     }
 
+    for (const module in permissions) {
+      if (permissions[module].create || permissions[module].update || permissions[module].delete) {
+        permissions[module].read = true; // Auto-grant read permission
+      }
+    }
+
     // Create role
     const newRole = new Role({ name, permissions, company: req.user.company });
     await newRole.save();
