@@ -12,6 +12,8 @@ import Roles from "./Components/Roles/Roles";
 import EmployeeVerification from "./Components/EmployeeVerification/EmployeeVerification";
 import ReminderList from './Components/Reminder/Reminder'
 import ReminderForm from './Components/Reminder/ReminderForm'
+import Settings from "./Components/Settings/Setting";
+import LeadFor from "./Components/Settings/LeadFor";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -32,6 +34,8 @@ function App() {
           <Route path="/reminderForm" element={<Layout><ReminderForm /></Layout>} />
 
           <Route path="/employee-verification" element={<Layout><EmployeeVerification /></Layout>} />
+          <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/lead-for" element={<Layout><LeadFor /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
