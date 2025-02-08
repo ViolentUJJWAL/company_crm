@@ -9,6 +9,7 @@ import Dashboard from "./Components/Dashboard/Dashboard";
 import Login from "./Components/Login/Login";
 import ResetPasswordForm from "./Components/Login/ResetPasswordForm";
 import Roles from "./Components/Roles/Roles";
+import EmployeeVerification from "./Components/EmployeeVerification/EmployeeVerification";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -25,6 +26,7 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPasswordForm/>} />
           <Route path="/lead" element={<Layout><Lead /></Layout>} />
           <Route path="/roles" element={<Layout><Roles /></Layout>} />
+          <Route path="/employee-verification" element={<Layout><EmployeeVerification /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
