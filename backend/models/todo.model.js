@@ -24,6 +24,10 @@ const todoSchema = new mongoose.Schema(
             required: [true, 'Description is required'],
             minlength: [5, 'Description must be at least 5 characters long'],
         },
+        dueDate: {
+            type: Date,
+            required: [true, 'Due date is required'],
+        },
         priority: {
             type: String,
             enum: {

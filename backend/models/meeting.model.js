@@ -33,6 +33,10 @@ const meetingSchema = new mongoose.Schema(
         ref: 'Contacts',
       },
     ],
+    conclusion: { 
+      type: String, 
+      trim: true 
+    },
     company: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Company',

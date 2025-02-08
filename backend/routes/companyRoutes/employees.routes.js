@@ -3,6 +3,7 @@ const express = require("express");
 // const checkActiveStatus = require("../../middleware/checkActiveStatus");
 // const checkRole = require("../../middleware/checkRole");
 const { getAllEmployees, verifyEmployee, getVerifiedEmployees, getUnverifiedEmployees, getEmployeeById } = require("../../controllers/companyControllers/employee.controller");
+const checkRole = require("../../middleware/checkRole");
 
 
 const router = express.Router();
@@ -14,11 +15,11 @@ const router = express.Router();
 // router.get("/unverify", authMiddleware, checkActiveStatus, checkRole("CompanyAdmin"), getUnverifiedEmployees)
 // router.get("/profile/:employeeId", authMiddleware, checkActiveStatus, checkRole("CompanyAdmin"), getEmployeeById)
 
-router.get("/all", getAllEmployees)
-router.post("/verification", verifyEmployee)
-router.get("/verify", getVerifiedEmployees)
-router.get("/unverify", getUnverifiedEmployees)
-router.get("/profile/:employeeId", getEmployeeById)
+router.get("/all", checkRole("SuperAdmin", "CompanyAdmin"), getAllEmployees)
+router.post("/verification", checkRole("CompanyAdmin"), verifyEmployee)
+router.get("/verify", checkRole("SuperAdmin", "CompanyAdmin", "Employee"), getVerifiedEmployees)
+router.get("/unverify", checkRole("SuperAdmin", "CompanyAdmin"), getUnverifiedEmployees)
+router.get("/profile/:employeeId", checkRole("SuperAdmin", "CompanyAdmin"), getEmployeeById)
 
 
 module.exports = router;
