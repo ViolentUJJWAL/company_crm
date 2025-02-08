@@ -1,7 +1,7 @@
 const fs = require('fs');
 const multer = require('multer');
 
-const uploadDir = 'backend/temp/';
+const uploadDir = 'temp/';
 
 // Ensure the directory exists
 if (!fs.existsSync(uploadDir)) {

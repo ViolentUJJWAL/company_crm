@@ -9,8 +9,12 @@ import Dashboard from "./Components/Dashboard/Dashboard";
 import Login from "./Components/Login/Login";
 import ResetPasswordForm from "./Components/Login/ResetPasswordForm";
 import Roles from "./Components/Roles/Roles";
+<<<<<<< HEAD
 import ReminderForm from "./Components/Reminder/ReminderForm";
 import ReminderList from "./Components/Reminder/Reminder";
+=======
+import EmployeeVerification from "./Components/EmployeeVerification/EmployeeVerification";
+>>>>>>> origin/nitesh
 
 function App() {
   const [count, setCount] = useState(0);
@@ -27,9 +31,13 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPasswordForm/>} />
           <Route path="/lead" element={<Layout><Lead /></Layout>} />
           <Route path="/roles" element={<Layout><Roles /></Layout>} />
+<<<<<<< HEAD
           <Route path="/reminder" element={<Layout><ReminderList /></Layout>} />
           <Route path="/reminderForm" element={<Layout><ReminderForm /></Layout>} />
 
+=======
+          <Route path="/employee-verification" element={<Layout><EmployeeVerification /></Layout>} />
+>>>>>>> origin/nitesh
         </Routes>
       </BrowserRouter>
     </>
