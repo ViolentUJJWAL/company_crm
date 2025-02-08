@@ -175,7 +175,7 @@ const Login = () => {
 
       {/* Forgot Password Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-500/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-900">
