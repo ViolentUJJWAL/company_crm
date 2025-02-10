@@ -45,6 +45,9 @@ function App() {
           <Route path="/lead-status-label" element={<Layout><LeadStatusLabel /></Layout>} />
           <Route path="/role-settings" element={<Layout><RoleSettings /></Layout>} />
           <Route path="/employee-settings" element={<Layout><EmployeeSettings /></Layout>} />
+          <Route path="/todo" element={<Layout><Todo /></Layout>} />
+          <Route path="/assign-task" element={<Layout><TaskAssign /></Layout>} />
+          <Route path="/employee-task" element={<Layout><EmployeeTasks /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
