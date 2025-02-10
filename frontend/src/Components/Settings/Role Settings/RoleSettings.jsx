@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Check, AlertCircle, Shield } from "lucide-react";
 import { RoleServices } from "../../../services/RoleServices";
+import { ToastContainer, toast } from "react-toastify";
+
 const RoleSettings = () => {
   const [roles, setRoles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +20,7 @@ const RoleSettings = () => {
       console.log("response", response);
       setRoles(response.data);
     } catch (error) {
-      setError("Failed to fetch roles. Please try again.");
+      toast.error("Failed to fetch roles. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -29,13 +31,13 @@ const RoleSettings = () => {
       setIsLoading(true);
       const response = await RoleServices.toggleActiveRole(role._id);
       if (response.status) {
-        setSuccess(response.message);
+        toast.success(response.message);
         fetchRoles();
       } else {
-        setError(response.error || "Failed to toggle role status");
+        toast.error(response.error || "Failed to toggle role status");
       }
     } catch (error) {
-      setError("Failed to toggle role status. Please try again.");
+      toast.error("Failed to toggle role status. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +62,8 @@ const RoleSettings = () => {
 
   return (
     <div>
+                        <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Header */}
@@ -75,7 +79,7 @@ const RoleSettings = () => {
           </div>
 
           {/* Alerts */}
-          {error && (
+          {/* {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
               <AlertCircle size={20} />
               {error}
@@ -86,7 +90,7 @@ const RoleSettings = () => {
               <Check size={20} />
               {success}
             </div>
-          )}
+          )} */}
 
           {/* Table */}
           <div className="overflow-x-auto">

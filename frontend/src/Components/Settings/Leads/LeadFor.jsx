@@ -85,7 +85,7 @@ export default function LeadPage() {
 
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
 
       <div className="p-5 bg-white rounded-xl">
         <div className="flex justify-between mb-10">
