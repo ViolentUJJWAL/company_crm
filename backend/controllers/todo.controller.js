@@ -43,7 +43,7 @@ exports.createTodo = async (req, res) => {
 exports.updateTodo = async (req, res) => {
     try {
         const { todoId } = req.params;
-        const { title, description, dueDate, priority, conclusion } = req.body;
+        const { title, description, dueDate, priority, conclusion, remark } = req.body;
 
         const existingTodo = await Todo.findById(todoId);
         if (!existingTodo) {
@@ -62,6 +62,11 @@ exports.updateTodo = async (req, res) => {
         if(conclusion){
             existingTodo.conclusion = conclusion || existingTodo.conclusion;
             existingTodo.conclusionSubmiteTime = new Date();
+            existingTodo.status = "Conclusion"
+        }
+        if(existingTodo.conclusion && remark){
+            existingTodo.remark = remark
+            existingTodo.status = "Remark"
         }
 
         const savedTodo = await existingTodo.save();

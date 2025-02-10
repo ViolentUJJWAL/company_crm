@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware, checkActiveStatus, createTodo )
 router.put("/:todoId", authMiddleware, checkActiveStatus, updateTodo )
-router.get("/all", authMiddleware, checkActiveStatus, checkRole("SuperAdmin", "CompanyAdmin") , getAllTodos )
+router.get("/all", authMiddleware, checkActiveStatus, checkRole("SuperAdmin", "CompanyAdmin", "Employee"), checkRole("todos", "read") , getAllTodos )
 router.get("/", authMiddleware, checkActiveStatus, getTodos )
 
 module.exports = router;

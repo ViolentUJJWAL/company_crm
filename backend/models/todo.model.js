@@ -36,6 +36,11 @@ const todoSchema = new mongoose.Schema(
             },
             default: 'Medium',
         },
+        status: {
+            type: String,
+            enum: ["ToDo", "Conclusion", "Remark"],
+            default: "ToDo"
+        },
         conclusion: {
             type: String,
             trim: true,
@@ -43,6 +48,10 @@ const todoSchema = new mongoose.Schema(
         conclusionSubmiteTime: {
             type: Date,
         },
+        remark: {
+            type: String,
+            trim: true,
+        }
     },
     {
         timestamps: true, // Automatically adds createdAt and updatedAt fields

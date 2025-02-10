@@ -33,6 +33,11 @@ const meetingSchema = new mongoose.Schema(
         ref: 'Contacts',
       },
     ],
+    meetingStatus:{
+      type: String,
+      enum: ["Pending", "Complete", "Cancel"],
+      default: "Pending"
+    },
     conclusion: { 
       type: String, 
       trim: true 
