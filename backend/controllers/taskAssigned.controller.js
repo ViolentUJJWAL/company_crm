@@ -155,7 +155,10 @@ exports.getAllTasks = async (req, res) => {
             if (endDate) filter.dueDate.$lte = new Date(endDate);
         }
 
-        const tasks = await TaskAssigned.find(filter).populate('assignedBy assignedTo company');
+        const tasks = await TaskAssigned.find(filter).populate({
+            path: 'assignedTo',
+            populate: { path: 'user' }
+        }).populate('assignedBy company');;
         res.json({ tasks });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

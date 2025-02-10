@@ -28,6 +28,9 @@ const roleSchema = new mongoose.Schema(
                 update: { type: Boolean, default: false },
                 delete: { type: Boolean, default: false },
             },
+            todos: {
+                read: { type: Boolean, default: false },
+            }
         },
         isActive: {
             type: Boolean,
