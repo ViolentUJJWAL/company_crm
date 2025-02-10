@@ -240,7 +240,7 @@ const TaskAssign = () => {
                   <div>
                     <p className="text-sm text-gray-500">Assigned To</p>
                     <p className="font-medium text-gray-800">
-                      {task.assignedTo.user}
+                      {task.assignedTo.user.name}
                     </p>
                   </div>
                 </div>
