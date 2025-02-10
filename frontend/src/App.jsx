@@ -19,6 +19,7 @@ import RoleSettings from "./Components/Settings/Role Settings/RoleSettings";
 import EmployeeSettings from "./Components/Settings/EmployeeSettings/EmployeeSettings";
 import LeadPage from "./Components/Settings/Leads/LeadFor";
 import Todo from "./Components/Todo/Todo";
+import TaskAssign from "./Components/Task Assign/TaskAssign";
 function App() {
   const [count, setCount] = useState(0);
 
@@ -44,6 +45,7 @@ function App() {
           <Route path="/role-settings" element={<Layout><RoleSettings /></Layout>} />
           <Route path="/employee-settings" element={<Layout><EmployeeSettings /></Layout>} />
           <Route path="/todo" element={<Layout><Todo /></Layout>} />
+          <Route path="/assign-task" element={<Layout><TaskAssign /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>

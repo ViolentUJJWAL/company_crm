@@ -21,7 +21,7 @@ const Sidebar = ({ isOpen }) => {
 
   const menuItems = [
     { icon: Home, label: "Dashboard", navigate: "/" },
-    { icon: FileText, label: "Documents", navigate: "/df" },
+    { icon: Filter, label: "Todo", navigate: "/todo" },
     { icon: Filter, label: "Lead", navigate: "/lead" },
     { icon: Filter, label: "Roles", navigate: "/roles" },
     {
@@ -29,10 +29,8 @@ const Sidebar = ({ isOpen }) => {
       label: "Emp. Verification",
       navigate: "/employee-verification",
     },
+    { icon: Bell, label: "Assign Task", navigate: "/assign-task" },
     { icon: Bell, label: "Reminder", navigate: "/reminder" },
-    { icon: Users, label: "Users", navigate: "/df" },
-    { icon: Calendar, label: "Calendar", navigate: "/df" },
-    { icon: MessageSquare, label: "Messages", navigate: "/df" },
     { icon: Settings, label: "Settings", navigate: "/settings" },
   ];
 

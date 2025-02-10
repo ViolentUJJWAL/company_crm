@@ -22,6 +22,10 @@ const taskAssignedSchema = new mongoose.Schema(
             enum: ['High', 'Medium', 'Low'],
             default: 'Medium',
         },
+        isEdit: {
+            type: Boolean,
+            default: false
+        },
         assignedTo: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Employee',
