@@ -121,9 +121,11 @@ exports.addConclusion = async (req, res) => {
         const task = await TaskAssigned.findById(taskId).populate("assignedBy");
         if (!task) return res.status(404).json({ message: 'Task not found' });
 
+        const employee = await Employee.findOne({user: userId})
+
         if (!user.company.equals(task.company)) return res.status(403).json({ message: "Access denied: you can't access other company." });
 
-        if (task.assignedTo.toString() !== userId.toString() && task.assignedBy.toString() !== userId.toString() && req.user.role !== "CompanyAdmin") {
+        if ( employee._id.equals(task.assignedTo) && task.assignedBy.equals(userId) && req.user.role !== "CompanyAdmin") {
             return res.status(403).json({ message: 'Permission denied' });
         }
 

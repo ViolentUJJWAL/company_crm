@@ -22,7 +22,7 @@ const roleSchema = new mongoose.Schema(
                 update: { type: Boolean, default: false },
                 delete: { type: Boolean, default: false },
             },
-            meeting: {
+            meeting: { 
                 create: { type: Boolean, default: false },
                 read: { type: Boolean, default: false },
                 update: { type: Boolean, default: false },
