@@ -84,17 +84,18 @@ exports.updateTask = async (req, res) => {
         path: "assignedTo",
         populate: { path: "user" },
       })
-      .populate("assignedBy company");
+      .populate("assignedBy");
     if (!task) return res.status(404).json({ message: "Task not found" });
 
     const oldTask = { ...task._doc };
 
-    if (!user.company.equals(task.company))
+    if (!req.user.company.equals(task.company))
       return res
         .status(403)
         .json({ message: "Access denied: you can't access other company." });
 
     if (req.user.role !== "CompanyAdmin" && !task.assignedBy.equals(userId)) {
+      console.log("jhu")
       return res.status(403).json({ message: "Permission denied" });
     }
 
