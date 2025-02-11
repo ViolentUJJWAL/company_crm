@@ -15,6 +15,8 @@ exports.createMeeting = async (req, res) => {
       return res.status(400).json({ message: "At least one employee must be added to the meeting" });
     }
 
+    if(!await Lead.findOne({_id: forLead, company: req.user.company})) return res.status(400).json({message: "Lead not found."})
+
     const meeting = new Meeting({
       title,
       participants,
@@ -57,6 +59,10 @@ exports.updateMeeting = async (req, res) => {
 
     if (!title || !participants || !scheduledTime || !agenda) {
       return res.status(400).json({ message: "All required fields must be filled" });
+    }
+
+    if(forLead){
+      if(!await Lead.findOne({_id: forLead, company: req.user.company})) return res.status(400).json({message: "Lead not found."})
     }
 
     const meeting = await Meeting.findOne({_id: id, company: req.user.company});
