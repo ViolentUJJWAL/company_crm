@@ -27,8 +27,8 @@ const contactsSchema = new mongoose.Schema(
       },
     },
     businessCard: {
-      public_id: { type: String, required: [true, 'Business card public_id is required'] },
-      url: { type: String, required: [true, 'Business card URL is required'] },
+      public_id: { type: String },
+      url: { type: String },
     },
     isClient: {
       type: Boolean,

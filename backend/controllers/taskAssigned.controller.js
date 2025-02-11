@@ -151,26 +151,16 @@ exports.addConclusion = async (req, res) => {
       return res.status(400).json({ message: "Conclusion is required" });
     }
 
-    const task = await TaskAssigned.findById(taskId).populate("assignedBy");
-    if (!task) return res.status(404).json({ message: "Task not found" });
-    const employee = Employee.findOne({user: userId})
+        const task = await TaskAssigned.findById(taskId).populate("assignedBy");
+        if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    if (!req.user.company.equals(task.company))
-      return res
-        .status(403)
-        .json({ message: "Access denied: you can't access other company." });
+        const employee = await Employee.findOne({user: userId})
 
-    console.log("user", userId);
-    console.log("assignedTo", task.assignedTo);
-    console.log("assignedBy", task.assignedBy);
-    if (
-      !task.assignedTo.equals(userId) &&
-      !task.assignedBy.equals(employee._id) &&
-      req.user.role !== "CompanyAdmin"
-    ) {
-        console.log("this")
-      return res.status(403).json({ message: "Permission denied" });
-    }
+        if (!req.user.company.equals(task.company)) return res.status(403).json({ message: "Access denied: you can't access other company." });
+
+        if ( employee._id.equals(task.assignedTo) && task.assignedBy.equals(userId) && req.user.role !== "CompanyAdmin") {
+            return res.status(403).json({ message: 'Permission denied' });
+        }
 
     task.conclusion = conclusion;
     task.conclusionSubmitTime = new Date();
