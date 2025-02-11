@@ -97,18 +97,22 @@ exports.updateMeeting = async (req, res) => {
 exports.changeMeetingStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, conclusion } = req.body;
 
     if (!["Pending", "Complete", "Cancel"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
+    if(!conclusion){
+      return res.status(400).json({ message: "meeting conclusion are required" });
+    }
     const meeting = await Meeting.findOne({_id: id, company: req.user.company});
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
 
     meeting.meetingStatus = status;
+    meeting.conclusion = conclusion;
     await meeting.save();
 
     res.status(200).json({ message: "Meeting status updated", meeting });

@@ -62,8 +62,12 @@ const RoleSettings = () => {
 
   return (
     <div>
-                        <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
-      
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
+
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Header */}

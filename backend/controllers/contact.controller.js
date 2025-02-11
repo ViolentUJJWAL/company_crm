@@ -6,6 +6,7 @@ const emptyTempFolder = require("../utils/emptyTempFolder");
 // Add Contact
 exports.addContact = async (req, res) => {
     try {
+        console.log('req.body', req.body)
         const { name, phoneNo, email, address } = req.body;
 
         if (!name || !email) {
@@ -103,6 +104,7 @@ exports.toggleClientStatus = async (req, res) => {
 // Get Contacts with Search & Filters
 exports.getContacts = async (req, res) => {
     try {
+        console.log("Called")
         const { search, isClient, page = 1, limit = 10 } = req.query;
         let filters = { company: req.user.company };
 
