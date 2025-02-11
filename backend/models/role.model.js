@@ -32,14 +32,10 @@ const roleSchema = new mongoose.Schema(
                 read: { type: Boolean, default: false },
             }
         },
-        isActive: {
-            type: Boolean,
-            default: true,
-        },
-        company: {
+        user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Company',
-            required: [true, 'Company reference is required'],
+            ref: 'Employee',
+            required: [true, 'Employee reference is required'],
         },
     },
     {
