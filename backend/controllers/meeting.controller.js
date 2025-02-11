@@ -36,7 +36,6 @@ exports.createMeeting = async (req, res) => {
         $push: {
           followUps: {
             sequence,
-            date: scheduledTime,
             conclusion: `Meeting for ${title}`,
             meeting: meeting._id,
           },
@@ -85,7 +84,6 @@ exports.updateMeeting = async (req, res) => {
         { _id: forLead, "followUps.meeting": id },
         {
           $set: {
-            "followUps.$.date": scheduledTime,
             "followUps.$.conclusion": `Updated meeting for ${title}`,
           },
         }

@@ -41,7 +41,7 @@ const leadSchema = new mongoose.Schema(
     followUps: [
       {
         sequence: { type: Number, required: true },
-        date: { type: Date, required: true },
+        date: { type: Date, default: Date.now() },
         conclusion: { type: String, trim: true },
         meeting: { type: mongoose.Schema.Types.ObjectId, ref: 'Meeting' },
       },

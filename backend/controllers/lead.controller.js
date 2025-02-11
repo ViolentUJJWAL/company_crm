@@ -200,30 +200,62 @@ exports.changeLeadStatus = async (req, res) => {
     }
 };
 
-// ✅ Add Follow-Up to Lead
-exports.addLeadFollowUp = async (req, res) => {
+exports.addFollowUp = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { date, conclusion } = req.body;
+        const { id } = req.params; // Lead ID from URL
+        const { conclusion } = req.body;
 
-        if (!conclusion || !date) {
-            return res.status(400).json({ message: "Sequence and date are required" });
-        }
+        if (!conclusion) return res.status(400).json({ message: "Follow-up conclusion is required" });
 
-        const lead = await Lead.findById(id);
+        const lead = await Lead.findOne({ _id: id, company: req.user.company });
         if (!lead) return res.status(404).json({ message: "Lead not found" });
 
+        // Ensure user has access to modify this lead
         if (String(lead.company) !== String(req.user.company)) {
-            return res.status(403).json({ message: "Unauthorized to add follow-up" });
+            return res.status(403).json({ message: "Unauthorized to add follow-up to this lead" });
         }
 
-        lead.followUps.push({ sequence, date, conclusion, meeting });
+        // Auto-generate sequence number
+        const sequence = lead.followUps.length ? lead.followUps.length + 1 : 1;
+
+        // Add follow-up
+        lead.followUps.push({ sequence, conclusion });
         await lead.save();
 
         return res.status(200).json({ message: "Follow-up added successfully", data: lead });
 
     } catch (error) {
         console.error("Error adding follow-up:", error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+};
+
+exports.updateFollowUp = async (req, res) => {
+    try {
+        const { id, followUpId } = req.params; // Lead ID & Follow-up ID from URL
+        const { conclusion } = req.body;
+
+        if (!conclusion) return res.status(400).json({ message: "Follow-up conclusion is required" });
+
+        const lead = await Lead.findOne({ _id: id, company: req.user.company });
+        if (!lead) return res.status(404).json({ message: "Lead not found" });
+
+        // Ensure user has access to modify this lead
+        if (String(lead.company) !== String(req.user.company)) {
+            return res.status(403).json({ message: "Unauthorized to modify this lead" });
+        }
+
+        // 🔄 **Find & Update Existing Follow-up**
+        const followUp = lead.followUps.find(f => String(f._id) === followUpId);
+        if (!followUp) return res.status(404).json({ message: "Follow-up not found" });
+
+        followUp.conclusion = conclusion;
+
+        await lead.save();
+        return res.status(200).json({ message: "Follow-up updated successfully", data: lead });
+
+    } catch (error) {
+        console.error("Error updating follow-up:", error);
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
