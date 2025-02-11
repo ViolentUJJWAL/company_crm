@@ -287,7 +287,7 @@ exports.getProfile = async (req, res) => {
     } else if (req.user.role === "Employee") {
       const employee = await Employee.findOne({ user: req.user._id })
         .populate("user") // Populate 'user'
-        .populate("company", "name"); // Populate 'company' and select only 'name'
+        .populate("company", "name").populate("role"); // Populate 'company' and select only 'name'
 
       return res.status(200).json({ user: employee });
     }
