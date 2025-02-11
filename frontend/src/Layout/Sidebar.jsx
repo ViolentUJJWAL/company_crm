@@ -30,6 +30,7 @@ const Sidebar = ({ isOpen }) => {
       navigate: "/employee-verification",
     },
     { icon: Bell, label: "Assign Task", navigate: "/assign-task" },
+    { icon: Bell, label: "Submit Task", navigate: "/employee-task" },
     { icon: Bell, label: "Reminder", navigate: "/reminder" },
     { icon: Settings, label: "Settings", navigate: "/settings" },
   ];
