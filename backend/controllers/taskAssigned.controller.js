@@ -95,7 +95,6 @@ exports.updateTask = async (req, res) => {
         .json({ message: "Access denied: you can't access other company." });
 
     if (req.user.role !== "CompanyAdmin" && !task.assignedBy.equals(userId)) {
-      console.log("jhu")
       return res.status(403).json({ message: "Permission denied" });
     }
 
