@@ -3,10 +3,16 @@ import { todoServices } from "../../services/todoServices";
 
 const Todo = () => {
   const [todos, setTodos] = useState([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDoneModalOpen, setIsDoneModalOpen] = useState(false);
   const [isRemarkModalOpen, setIsRemarkModalOpen] = useState(false);
   const [selectedTodo, setSelectedTodo] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [filters, setFilters] = useState({
+    priority: "",
+    startDate: "",
+    endDate: "",
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -18,12 +24,16 @@ const Todo = () => {
 
   useEffect(() => {
     fetchTodos();
-  }, []);
+  }, [filters]);
 
   const fetchTodos = async () => {
     try {
-      const response = await todoServices.getTodos();
-      console.log('Todos', response.data)
+      const queryParams = new URLSearchParams();
+      if (filters.priority) queryParams.append("priority", filters.priority);
+      if (filters.startDate) queryParams.append("startDate", filters.startDate);
+      if (filters.endDate) queryParams.append("endDate", filters.endDate);
+
+      const response = await todoServices.getTodos(queryParams.toString());
       const sortedTodos = response.data.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
@@ -40,16 +50,39 @@ const Todo = () => {
     });
   };
 
+  const handleFilterChange = (e) => {
+    setFilters({
+      ...filters,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await todoServices.createTodo(formData);
-      setIsCreateModalOpen(false);
+      if (isUpdating) {
+        await todoServices.updateTodo(selectedTodo._id, formData);
+      } else {
+        await todoServices.createTodo(formData);
+      }
+      setIsFormModalOpen(false);
       resetForm();
       fetchTodos();
     } catch (error) {
       console.error("Error saving todo:", error);
     }
+  };
+
+  const handleUpdateClick = (todo) => {
+    setSelectedTodo(todo);
+    setFormData({
+      title: todo.title,
+      description: todo.description,
+      dueDate: todo.dueDate.split("T")[0], // Format date for input
+      priority: todo.priority,
+    });
+    setIsUpdating(true);
+    setIsFormModalOpen(true);
   };
 
   const handleDone = async (todoId) => {
@@ -89,6 +122,8 @@ const Todo = () => {
       dueDate: "",
       priority: "Medium",
     });
+    setIsUpdating(false);
+    setSelectedTodo(null);
   };
 
   const TodoCard = ({ todo, onDone, onRemark }) => (
@@ -125,22 +160,32 @@ const Todo = () => {
           </p>
         </div>
       )}
-      {onDone && (
-        <button
-          onClick={onDone}
-          className="mt-2 w-full bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-        >
-          Add Conclusion
-        </button>
-      )}
-      {onRemark && (
-        <button
-          onClick={onRemark}
-          className="mt-2 w-full bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
-        >
-          Add Remark
-        </button>
-      )}
+      <div className="flex flex-col gap-2 mt-2">
+        {!todo.conclusion && !todo.remark && (
+          <button
+            onClick={() => handleUpdateClick(todo)}
+            className="w-full bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+          >
+            Update Todo
+          </button>
+        )}
+        {onDone && (
+          <button
+            onClick={onDone}
+            className="w-full bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+          >
+            Add Conclusion
+          </button>
+        )}
+        {onRemark && (
+          <button
+            onClick={onRemark}
+            className="w-full bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
+          >
+            Add Remark
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -152,17 +197,77 @@ const Todo = () => {
             ToDo / Conclusion
           </h1>
           <div className="flex items-center space-x-4">
-            <select
-              value={formData.priority}
-              onChange={(e) =>
-                setFormData({ ...formData, priority: e.target.value })
-              }
-              className="border rounded px-3 py-1"
+            {/* Filters */}
+            <div className="flex space-x-4">
+              {/* Priority Filter */}
+              <div className="flex flex-col">
+                <label
+                  htmlFor="priority"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Priority
+                </label>
+                <select
+                  id="priority"
+                  name="priority"
+                  value={filters.priority}
+                  onChange={handleFilterChange}
+                  className="border rounded px-3 py-1"
+                >
+                  <option value="">All Priorities</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+
+              {/* Start Date Filter */}
+              <div className="flex flex-col">
+                <label
+                  htmlFor="startDate"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Start Date
+                </label>
+                <input
+                  id="startDate"
+                  type="date"
+                  name="startDate"
+                  value={filters.startDate}
+                  onChange={handleFilterChange}
+                  className="border rounded px-3 py-1"
+                />
+              </div>
+
+              {/* End Date Filter */}
+              <div className="flex flex-col">
+                <label
+                  htmlFor="endDate"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  End Date
+                </label>
+                <input
+                  id="endDate"
+                  type="date"
+                  name="endDate"
+                  value={filters.endDate}
+                  onChange={handleFilterChange}
+                  className="border rounded px-3 py-1"
+                />
+              </div>
+            </div>
+
+            {/* Create Todo Button */}
+            <button
+              onClick={() => {
+                resetForm();
+                setIsFormModalOpen(true);
+              }}
+              className="bg-blue-600 text-white px-4 mt-4 py-2 rounded hover:bg-blue-700"
             >
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Low">Low</option>
-            </select>
+              Create Todo
+            </button>
           </div>
         </div>
 
@@ -218,11 +323,13 @@ const Todo = () => {
           </div>
         </div>
 
-        {/* Create Modal */}
-        {isCreateModalOpen && (
+        {/* Create/Update Modal */}
+        {isFormModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Create Todo</h2>
+              <h2 className="text-xl font-bold mb-4">
+                {isUpdating ? "Update Todo" : "Create Todo"}
+              </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -283,11 +390,14 @@ const Todo = () => {
                     type="submit"
                     className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                   >
-                    Create
+                    {isUpdating ? "Update" : "Create"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsCreateModalOpen(false)}
+                    onClick={() => {
+                      setIsFormModalOpen(false);
+                      resetForm();
+                    }}
                     className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
                   >
                     Cancel

@@ -1,4 +1,4 @@
-// services/todoService.js
+// services/todoServices.js
 import api from "./api";
 
 export const todoServices = {
@@ -8,7 +8,7 @@ export const todoServices = {
       return response.data;
     } catch (error) {
       console.error("Error creating todo:", error);
-      throw error; // Re-throw the error to be handled by the calling function
+      throw error;
     }
   },
 
@@ -22,9 +22,11 @@ export const todoServices = {
     }
   },
 
-  getAllTodos: async () => {
+  getAllTodos: async (queryString = "") => {
     try {
-      const response = await api.get("/todo/all");
+      const response = await api.get(
+        `/todo/all${queryString ? `?${queryString}` : ""}`
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching all todos:", error);
@@ -32,9 +34,11 @@ export const todoServices = {
     }
   },
 
-  getTodos: async () => {
+  getTodos: async (queryString = "") => {
     try {
-      const response = await api.get("/todo");
+      const response = await api.get(
+        `/todo${queryString ? `?${queryString}` : ""}`
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching todos:", error);
