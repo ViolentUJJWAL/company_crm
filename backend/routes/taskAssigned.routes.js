@@ -3,6 +3,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { createTask, updateTask, addConclusion, getAllTasks, getMyTasks } = require('../controllers/taskAssigned.controller');
 const checkRole = require('../middleware/checkRole');
 const checkPermission = require('../middleware/checkPermission');
+const checkActiveStatus = require('../middleware/checkActiveStatus');
 const router = express.Router();
 
 // Routes for task management

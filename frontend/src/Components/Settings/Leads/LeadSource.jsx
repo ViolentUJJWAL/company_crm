@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import LeadSourceService from "../../../services/leadSourceService";
 import { X, Pencil, Plus, Check, AlertCircle } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+
 
 const Modal = ({ isOpen, onClose, title, onSubmit, children, isLoading }) => {
   // If the modal is not open, return null (don't render anything)
@@ -65,7 +67,8 @@ const LeadSource = () => {
       console.log("response.data", response.data);
       setLeadSources(response.data);
     } catch (error) {
-      setError(error.message);
+      // setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -74,17 +77,21 @@ const LeadSource = () => {
   const handleCreateLeadSource = async () => {
     try {
       if (!newLeadSourceName.trim()) {
-        setError("Lead source name is required");
+        // setError("Lead source name is required");
+        toast.error("Lead source name is required");
+        
         return;
       }
       setIsLoading(true);
       await LeadSourceService.addLeadSource({ name: newLeadSourceName });
-      setSuccess("Lead source created successfully");
+      // setSuccess("Lead source created successfully");
+      toast.success("Lead source created successfully")
       setIsCreateModalOpen(false);
       setNewLeadSourceName("");
       fetchLeadSources();
     } catch (error) {
-      setError(error.message);
+      // setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -93,20 +100,23 @@ const LeadSource = () => {
   const handleUpdateLeadSource = async () => {
     try {
       if (!newLeadSourceName.trim()) {
-        setError("Lead source name is required");
+        // setError("Lead source name is required");
+        toast.error("Lead source name is required")
         return;
       }
       setIsLoading(true);
       await LeadSourceService.updateLeadSource(selectedLeadSource._id, {
         name: newLeadSourceName,
       });
-      setSuccess("Lead source updated successfully");
+      // setSuccess("Lead source updated successfully");
+      toast.success("Lead source updated successfully");
       setIsUpdateModalOpen(false);
       setSelectedLeadSource(null);
       setNewLeadSourceName("");
       fetchLeadSources();
     } catch (error) {
-      setError(error.message);
+      // setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -116,14 +126,14 @@ const LeadSource = () => {
     try {
       setIsLoading(true);
       await LeadSourceService.toggleActiveLeadSource(leadSource._id);
-      setSuccess(
+      toast.success(
         `Lead source ${
           leadSource.isActive ? "deactivated" : "activated"
         } successfully`
       );
       fetchLeadSources();
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -148,6 +158,8 @@ const LeadSource = () => {
 
   return (
     <div>
+            <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Header */}
@@ -162,7 +174,7 @@ const LeadSource = () => {
             </button>
           </div>
 
-          {/* Alerts */}
+          {/* Alerts
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
               <AlertCircle size={20} />
@@ -174,7 +186,7 @@ const LeadSource = () => {
               <Check size={20} />
               {success}
             </div>
-          )}
+          )} */}
 
           {/* Table */}
           <div className="overflow-x-auto">

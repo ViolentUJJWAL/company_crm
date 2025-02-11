@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, AlertCircle, User } from "lucide-react";
 import { getAllEmployees, toggleEmployeeStatus } from "../../../services/employeeServices";
+import { ToastContainer, toast } from "react-toastify";
 
 const EmployeeSettings = () => {
   const [employees, setEmployees] = useState([]);
@@ -19,7 +20,7 @@ const EmployeeSettings = () => {
       console.log("response.data", response.data);
       setEmployees(response.data);
     } catch (error) {
-      setError("Failed to fetch employees. Please try again.");
+      toast.error("Failed to fetch employees. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -30,13 +31,13 @@ const EmployeeSettings = () => {
       setIsLoading(true);
       const response = await toggleEmployeeStatus(employeeId);
       if (response.status) {
-        setSuccess(response.message);
+        toast.success(response.message);
         fetchEmployees();
       } else {
-        setError(response.error || "Failed to toggle employee status");
+        toast.error(response.error || "Failed to toggle employee status");
       }
     } catch (error) {
-      setError("Failed to toggle employee status. Please try again.");
+      toast.error("Failed to toggle employee status. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +62,8 @@ const EmployeeSettings = () => {
 
   return (
     <div>
+                              <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Header */}

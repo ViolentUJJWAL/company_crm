@@ -1,5 +1,6 @@
-const Meeting = require('../models/Meeting');
-const Lead = require('../models/Lead');
+const Lead = require("../models/lead.model");
+const Meeting = require("../models/meeting.model");
+
 
 // Create Meeting
 exports.createMeeting = async (req, res) => {

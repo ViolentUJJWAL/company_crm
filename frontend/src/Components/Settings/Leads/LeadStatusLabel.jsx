@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import LeadStatusLabelService from "../../../services/leadStatusLabelServices";
 import { X, Pencil, Plus, Check, AlertCircle } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+
 
 const Modal = ({ isOpen, isLoading, onClose, title, onSubmit, children }) => {
   if (!isOpen) return null;
@@ -59,7 +61,7 @@ const LeadStatusLabel = () => {
       console.log("response.data", response.data);
       setStatusLabels(response.data);
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -69,17 +71,17 @@ const LeadStatusLabel = () => {
     try {
       console.log("labelName", labelName);
       if (!labelName.trim()) {
-        setError("Status label name is required");
+        toast.error("Status label name is required");
         return;
       }
       setIsLoading(true);
       await LeadStatusLabelService.addLeadStatusLabel({ name: labelName });
-      setSuccess("Status label created successfully");
+      toast.success("Status label created successfully");
       setIsCreateModalOpen(false);
       setLabelName("");
       fetchStatusLabels();
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -88,20 +90,20 @@ const LeadStatusLabel = () => {
   const handleUpdateLabel = async () => {
     try {
       if (!labelName.trim()) {
-        setError("Status label name is required");
+        toast.error("Status label name is required");
         return;
       }
       setIsLoading(true);
       await LeadStatusLabelService.updateLeadStatusLabel(selectedLabel._id, {
         name: labelName,
       });
-      setSuccess("Status label updated successfully");
+      toast.success("Status label updated successfully");
       setIsUpdateModalOpen(false);
       setSelectedLabel(null);
       setLabelName("");
       fetchStatusLabels();
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -109,6 +111,8 @@ const LeadStatusLabel = () => {
 
   return (
     <div>
+                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Header */}
@@ -131,7 +135,7 @@ const LeadStatusLabel = () => {
           </div>
 
           {/* Alerts */}
-          {error && (
+          {/* {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
               <AlertCircle size={20} />
               {error}
@@ -142,7 +146,7 @@ const LeadStatusLabel = () => {
               <Check size={20} />
               {success}
             </div>
-          )}
+          )} */}
 
           {/* Table */}
           <div className="overflow-x-auto">
@@ -210,7 +214,7 @@ const LeadStatusLabel = () => {
         onClose={() => {
           setIsCreateModalOpen(false);
           setLabelName("");
-          setError("");
+          toast.error("");
         }}
         title="Create Status Label"
         onSubmit={handleCreateLabel}
@@ -239,7 +243,7 @@ const LeadStatusLabel = () => {
           setIsUpdateModalOpen(false);
           setLabelName("");
           setSelectedLabel(null);
-          setError("");
+          toast.error("");
         }}
         title="Update Status Label"
         onSubmit={handleUpdateLabel}

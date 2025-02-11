@@ -18,6 +18,9 @@ import LeadStatusLabel from "./Components/Settings/Leads/LeadStatusLabel";
 import RoleSettings from "./Components/Settings/Role Settings/RoleSettings";
 import EmployeeSettings from "./Components/Settings/EmployeeSettings/EmployeeSettings";
 import LeadPage from "./Components/Settings/Leads/LeadFor";
+import Todo from "./Components/Todo/Todo";
+import TaskAssign from "./Components/Task Assign/TaskAssign";
+import EmployeeTasks from "./Components/EmployeeTask/EmployeeTask";
 function App() {
   const [count, setCount] = useState(0);
 
@@ -42,6 +45,9 @@ function App() {
           <Route path="/lead-status-label" element={<Layout><LeadStatusLabel /></Layout>} />
           <Route path="/role-settings" element={<Layout><RoleSettings /></Layout>} />
           <Route path="/employee-settings" element={<Layout><EmployeeSettings /></Layout>} />
+          <Route path="/todo" element={<Layout><Todo /></Layout>} />
+          <Route path="/assign-task" element={<Layout><TaskAssign /></Layout>} />
+          <Route path="/employee-task" element={<Layout><EmployeeTasks /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
