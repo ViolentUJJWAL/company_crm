@@ -27,6 +27,7 @@ const todoRoutes = require("./routes/todo.routes")
 const taskAssignedRoutes = require("./routes/taskAssigned.routes")
 const meetingRoutes = require("./routes/meeting.routes")
 const contactRoutes = require("./routes/contact.routes")
+const leadRoutes = require("./routes/lead.routes")
 
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/super-admin", superAdminRoutes)
@@ -35,5 +36,6 @@ app.use("/api/v1/todo", todoRoutes)
 app.use("/api/v1/task-assigned", taskAssignedRoutes)
 app.use("/api/v1/meeting", meetingRoutes)
 app.use("/api/v1/contact", contactRoutes)
+app.use("/api/v1/lead", leadRoutes)
 
 module.exports = app;
