@@ -12,7 +12,7 @@ router.get("/", getCompanies)
 router.use("/employee", authMiddleware, checkActiveStatus, require("./companyRoutes/employees.routes") )
 
 // company role
-router.use("/role", authMiddleware, checkActiveStatus, require("./companyRoutes/role.routes") )
+// router.use("/role", authMiddleware, checkActiveStatus, require("./companyRoutes/role.routes") )
 
 // leadFor
 router.use("/lead-for", authMiddleware, checkActiveStatus, require("./companyRoutes/leadFor.routes") )

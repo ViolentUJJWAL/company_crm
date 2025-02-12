@@ -21,6 +21,8 @@ import LeadPage from "./Components/Settings/Leads/LeadFor";
 import Todo from "./Components/Todo/Todo";
 import TaskAssign from "./Components/Task Assign/TaskAssign";
 import EmployeeTasks from "./Components/EmployeeTask/EmployeeTask";
+import Meetings from "./Components/Meetings/Meetings";
+import Contacts from "./Components/Contacts/Contacts";
 function App() {
   const [count, setCount] = useState(0);
 
@@ -48,6 +50,8 @@ function App() {
           <Route path="/todo" element={<Layout><Todo /></Layout>} />
           <Route path="/assign-task" element={<Layout><TaskAssign /></Layout>} />
           <Route path="/employee-task" element={<Layout><EmployeeTasks /></Layout>} />
+          <Route path="/meetings" element={<Layout><Meetings /></Layout>} />
+          <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
