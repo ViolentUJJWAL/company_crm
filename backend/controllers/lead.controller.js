@@ -1,6 +1,6 @@
 const Contacts = require("../models/contact.model");
 const Employee = require("../models/employee.model");
-const Lead = require("../models/Lead");
+const Lead = require("../models/lead.model");
 const LeadFor = require("../models/leadFor.model");
 const LeadSource = require("../models/leadSource.model");
 const LeadStatusLabel = require("../models/leadStatusLabel.model");
