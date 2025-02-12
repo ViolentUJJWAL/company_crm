@@ -2,7 +2,7 @@ const express = require("express");
 // const authMiddleware = require("../../middleware/authMiddleware");
 // const checkActiveStatus = require("../../middleware/checkActiveStatus");
 // const checkRole = require("../../middleware/checkRole");
-const { getAllEmployees, verifyEmployee, getVerifiedEmployees, getUnverifiedEmployees, getEmployeeById, toggleEmployeeStatus } = require("../../controllers/companyControllers/employee.controller");
+const { getAllEmployees, verifyEmployee, getVerifiedEmployees, getUnverifiedEmployees, getEmployeeById, toggleEmployeeStatus, changePermission } = require("../../controllers/companyControllers/employee.controller");
 const checkRole = require("../../middleware/checkRole");
 
 
@@ -21,6 +21,7 @@ router.get("/verify", checkRole("SuperAdmin", "CompanyAdmin", "Employee"), getVe
 router.get("/unverify", checkRole("SuperAdmin", "CompanyAdmin"), getUnverifiedEmployees)
 router.get("/profile/:employeeId", checkRole("SuperAdmin", "CompanyAdmin"), getEmployeeById)
 router.put("/change-active-status/:employeeId", checkRole("CompanyAdmin"), toggleEmployeeStatus)
+router.put("/change-permissions", checkRole("CompanyAdmin"), changePermission)
 
 
 module.exports = router;

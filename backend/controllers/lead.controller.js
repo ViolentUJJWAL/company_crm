@@ -1,6 +1,6 @@
 const Contacts = require("../models/contact.model");
 const Employee = require("../models/employee.model");
-const Lead = require("../models/Lead");
+const Lead = require("../models/lead.model");
 const LeadFor = require("../models/leadFor.model");
 const LeadSource = require("../models/leadSource.model");
 const LeadStatusLabel = require("../models/leadStatusLabel.model");
@@ -101,7 +101,7 @@ exports.updateLead = async (req, res) => {
 // ✅ Get All Leads (with optional filters)
 exports.getLeads = async (req, res) => {
     try {
-        const { search, priority, status, assignedTo, page = 1, limit = 10 } = req.query;
+        const { search, priority, status, assignedTo } = req.query;
         const company = req.user.company; // Get the company ID from the authenticated user
 
         let filter = { company }; // Ensure filtering by company
@@ -129,12 +129,8 @@ exports.getLeads = async (req, res) => {
             ];
         }
 
-        // 🔹 Pagination
-        const skip = (page - 1) * limit;
         const leads = await Lead.find(filter)
             .populate("for source contact status assignedTo")
-            .skip(skip)
-            .limit(Number(limit))
             .sort({ createdAt: -1 });
 
         const totalLeads = await Lead.countDocuments(filter);

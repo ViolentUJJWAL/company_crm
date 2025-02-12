@@ -2,11 +2,9 @@ const express = require("express");
 const { getCompanies } = require("../controllers/company.controller");
 const authMiddleware = require("../middleware/authMiddleware");
 const checkActiveStatus = require("../middleware/checkActiveStatus");
-const checkRole = require("../middleware/checkRole");
 
 const router = express.Router();
 
-router.get("/", getCompanies)
 
 // company employee
 router.use("/employee", authMiddleware, checkActiveStatus, require("./companyRoutes/employees.routes") )
@@ -23,6 +21,7 @@ router.use("/lead-source", authMiddleware, checkActiveStatus, require("./company
 // leadStatusLabel
 router.use("/lead-status", authMiddleware, checkActiveStatus, require("./companyRoutes/leadStatusLabel.routes") )
 
+router.get("/", getCompanies)
 
 
 
