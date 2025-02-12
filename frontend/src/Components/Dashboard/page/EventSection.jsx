@@ -6,7 +6,6 @@ const EventSection = () => {
   const events = [
     { id: 1, title: "Meeting with Client", date: "01/12/2022", type: "meeting" },
     { id: 2, title: "Reminder: Follow up on Leads", date: "02/12/2022", type: "reminder" },
-    { id: 3, title: "Event: Product Launch", date: "05/12/2022", type: "event" },
     { id: 4, title: "Team Standup", date: "03/12/2022", type: "meeting" },
     { id: 5, title: "Reminder: Send Report", date: "04/12/2022", type: "reminder" },
   ];
@@ -47,14 +46,7 @@ const EventSection = () => {
         >
           Reminders
         </button>
-        <button
-          onClick={() => setFilter("event")}
-          className={`px-4 py-2 rounded-full text-sm font-medium ${
-            filter === "event" ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          Events
-        </button>
+       
       </div>
 
       {/* Event List */}
@@ -70,9 +62,7 @@ const EventSection = () => {
               className={`inline-block px-3 py-1 mt-2 rounded-full text-xs font-semibold ${
                 event.type === "meeting"
                   ? "bg-green-100 text-green-700"
-                  : event.type === "reminder"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-purple-100 text-purple-700"
+                  : "bg-yellow-100 text-yellow-700"
               }`}
             >
               {event.type}

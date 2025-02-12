@@ -36,7 +36,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
   );
 };
 
-const TaskCard = ({ task, onEdit }) => {
+const TaskTable = ({ tasks, onEdit }) => {
   const getPriorityColor = (priority) => {
     const colors = {
       high: "bg-red-50 text-red-700",
@@ -47,97 +47,88 @@ const TaskCard = ({ task, onEdit }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 hover:shadow-sm transition-shadow duration-200">
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-base font-medium text-gray-800">
-                {task.title}
-              </h3>
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
-                  task.priority
-                )}`}
-              >
-                {task.priority}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 line-clamp-2">
-              {task.description}
-            </p>
-          </div>
-          {!task.conclusion && (
-            <button
-              onClick={() => onEdit(task)}
-              className="p-1.5 hover:bg-gray-50 rounded-md transition-colors duration-200"
-            >
-              <Edit2 className="w-4 h-4 text-gray-400" />
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Assigned By</p>
-              <p className="text-gray-700">{task.assignedBy.name}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <UserCheck className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Assigned To</p>
-              <p className="text-gray-700">{task.assignedTo.user.name}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Due Date</p>
-              <p className="text-gray-700">
+    <div className="bg-white rounded-lg border border-gray-100 overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b">
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Title
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Description
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Assigned By
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Assigned To
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Due Date
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Priority
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Status
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((task) => (
+            <tr key={task._id} className="border-b hover:bg-gray-50">
+              <td className="p-3 text-sm text-gray-700">{task.title}</td>
+              <td className="p-3 text-sm text-gray-700">{task.description}</td>
+              <td className="p-3 text-sm text-gray-700">
+                {task.assignedBy.name}
+              </td>
+              <td className="p-3 text-sm text-gray-700">
+                {task.assignedTo.user.name}
+              </td>
+              <td className="p-3 text-sm text-gray-700">
                 {format(new Date(task.dueDate), "MMM d, yyyy")}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Flag className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Status</p>
-              <div className="flex items-center gap-1">
-                {task.conclusion ? (
-                  <>
-                    <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                    <p className="text-green-700">Completed</p>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-3.5 h-3.5 text-yellow-500" />
-                    <p className="text-yellow-700">Pending</p>
-                  </>
+              </td>
+              <td className="p-3">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                    task.priority
+                  )}`}
+                >
+                  {task.priority}
+                </span>
+              </td>
+              <td className="p-3">
+                <div className="flex items-center gap-1">
+                  {task.conclusion ? (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                      <p className="text-sm text-green-700">Completed</p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-3.5 h-3.5 text-yellow-500" />
+                      <p className="text-sm text-yellow-700">Pending</p>
+                    </>
+                  )}
+                </div>
+              </td>
+              <td className="p-3">
+                {!task.conclusion && (
+                  <button
+                    onClick={() => onEdit(task)}
+                    className="p-1.5 hover:bg-gray-50 rounded-md transition-colors duration-200"
+                  >
+                    <Edit2 className="w-4 h-4 text-gray-400" />
+                  </button>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {task.conclusion && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="bg-gray-50 rounded-md p-3">
-              <span className="text-xs font-medium text-gray-700">
-                Conclusion
-              </span>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                {task.conclusion}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -300,11 +291,7 @@ const TaskAssign = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {tasks.map((task) => (
-          <TaskCard key={task._id} task={task} onEdit={handleEdit} />
-        ))}
-      </div>
+      <TaskTable tasks={tasks} onEdit={handleEdit} />
 
       <Modal
         isOpen={isModalOpen}
