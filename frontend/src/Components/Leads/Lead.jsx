@@ -202,14 +202,14 @@ function Lead() {
           //   <h3 className={`font-semibold p-3 bg-gray-200 `}>{column.title} ({column.count})</h3>
             <Droppable key={column.title} droppableId={column.title}>
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className={`p-4 rounded-lg shadow-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
-                  <h3 className={` font-bold mb-2  p-3 flex justify-between ${
+                <div ref={provided.innerRef} {...provided.droppableProps} className={`p-1 rounded-lg shadow-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
+                  <h3 className={` font-bold mb-2 rounded-sm p-3 flex justify-between ${
                      column.title === "New"
-                     ? "bg-teal-300 " : column.title === "Processing" ? "bg-yellow-300" : column.title=== "Close-by" ? "bg-purple-300" :column.title === "Confirm" ? "bg-green-300" :"bg-red-300"
+                     ? "bg-teal-300 " : column.title === "Processing" ? "bg-yellow-200" : column.title=== "Close-by" ? "bg-purple-300" :column.title === "Confirm" ? "bg-green-300" :"bg-red-300"
                    
                   }`}> <p>{column.title}</p> <div className={`w-[25px] h-[25px] rounded-3xl bg-amber-700 text-center ${
                     column.title === "New"
-                    ? "bg-teal-200 " : column.title === "Processing" ? "bg-yellow-200" : column.title=== "Close-by" ? "bg-purple-200" :column.title === "Confirm" ? "bg-green-200" :"bg-red-200"
+                    ? "bg-teal-200 " : column.title === "Processing" ? "bg-yellow-50" : column.title=== "Close-by" ? "bg-purple-200" :column.title === "Confirm" ? "bg-green-200" :"bg-red-200"
                   
                  } `}>{column.count}</div></h3>
                   {column.leads.map((lead, index) => (

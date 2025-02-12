@@ -3,24 +3,29 @@ import taskServices from "../../services/taskServices";
 
 const EmployeeTasks = () => {
   const [tasks, setTasks] = useState([]);
-  const [filters, setFilters] = useState({ title: "", priority: "", dueDate: "" });
+  const [filters, setFilters] = useState({
+    title: "",
+    priority: "",
+    dueDate: "",
+  });
   const [modalTask, setModalTask] = useState(null);
   const [conclusion, setConclusion] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchTasks = async () => {
+    try {
+      const data = await taskServices.getMyTasks();
+      if (Array.isArray(data.tasks)) {
+        setTasks(data.tasks);
+      } else {
+        console.warn("⚠ Invalid Response:", data);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching tasks:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const data = await taskServices.getMyTasks();
-        if (Array.isArray(data.tasks)) {
-          setTasks(data.tasks);
-        } else {
-          console.warn("⚠ Invalid Response:", data);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching tasks:", error);
-      }
-    };
-
     fetchTasks();
   }, []);
 
@@ -28,10 +33,12 @@ const EmployeeTasks = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const filteredTasks = tasks.filter(task =>
-    (filters.title === "" || task.title.toLowerCase().includes(filters.title.toLowerCase())) &&
-    (filters.priority === "" || task.priority === filters.priority) &&
-    (filters.dueDate === "" || task.dueDate === filters.dueDate)
+  const filteredTasks = tasks.filter(
+    (task) =>
+      (filters.title === "" ||
+        task.title.toLowerCase().includes(filters.title.toLowerCase())) &&
+      (filters.priority === "" || task.priority === filters.priority) &&
+      (filters.dueDate === "" || task.dueDate === filters.dueDate)
   );
 
   const openModal = (task) => {
@@ -39,15 +46,14 @@ const EmployeeTasks = () => {
       console.error("❌ Task ID is missing!", task);
       return;
     }
-    setModalTask({ ...task, id: task._id }); // ✅ _id ko id me map kar diya
+    setModalTask({ ...task, id: task._id });
     setConclusion(task.conclusion || "");
   };
-  
-  
 
   const closeModal = () => {
     setModalTask(null);
     setConclusion("");
+    setIsSubmitting(false);
   };
 
   const handleSubmit = async () => {
@@ -56,105 +62,154 @@ const EmployeeTasks = () => {
       return;
     }
 
-    console.log("✅ Submitting conclusion for Task ID:", modalTask.id);
+    setIsSubmitting(true);
 
     try {
-      const updatedTask = await taskServices.addConclusion(modalTask.id, conclusion);
-      console.log("✅ API Response:", updatedTask);
-
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === modalTask.id
-            ? { ...task, conclusion: updatedTask.conclusion, conclusionSubmitTime: new Date().toISOString() }
-            : task
-        )
-      );
-
-      console.log("✅ Updated tasks state:", tasks);
+      await taskServices.addConclusion(modalTask.id, conclusion);
+      await fetchTasks(); // Refresh tasks after submission
       closeModal();
     } catch (error) {
       console.error("❌ Error updating conclusion:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // useEffect(() => {
-  //   console.log("🔍 modalTask Updated:", modalTask);
-  // }, [modalTask]);
-
-  
-
   return (
-    <div className="p-4 px-10 max-w-5xl bg-white rounded-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Assigned Tasks</h2>
+    <div>
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Task Management
+        </h2>
 
-      <div className="mb-4 flex gap-2">
-        <input
-          type="text"
-          name="title"
-          placeholder="Filter by title"
-          value={filters.title}
-          onChange={handleFilterChange}
-          className="p-2 border rounded w-full"
-        />
-        <select name="priority" value={filters.priority} onChange={handleFilterChange} className="p-2 border rounded">
-          <option value="">All Priorities</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
-        <input
-          type="date"
-          name="dueDate"
-          value={filters.dueDate}
-          onChange={handleFilterChange}
-          className="p-2 border rounded"
-        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <input
+            type="text"
+            name="title"
+            placeholder="Search tasks..."
+            value={filters.title}
+            onChange={handleFilterChange}
+            className="p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            name="priority"
+            value={filters.priority}
+            onChange={handleFilterChange}
+            className="p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <input
+            type="date"
+            name="dueDate"
+            value={filters.dueDate}
+            onChange={handleFilterChange}
+            className="p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTasks.map((task) => (
+            <div
+              key={task.id || task._id}
+              className="bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-sm font-medium text-gray-900">
+                  {task.title}
+                </h3>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    task.priority === "High"
+                      ? "bg-red-100 text-red-800"
+                      : task.priority === "Medium"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-green-100 text-green-800"
+                  }`}
+                >
+                  {task.priority}
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                {task.description}
+              </p>
+              <p className="text-xs text-gray-500 mb-2">
+                Due: {new Date(task.dueDate).toLocaleDateString()}
+              </p>
+
+              {task.conclusion ? (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-600 mb-1 line-clamp-2">
+                    <span className="font-medium">Conclusion:</span>{" "}
+                    {task.conclusion}
+                  </p>
+                  <p className="text-xs text-gray-400 mb-2">
+                    Submitted:{" "}
+                    {new Date(task.conclusionSubmitTime).toLocaleDateString()}
+                  </p>
+                  <button
+                    className="w-full text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                    onClick={() => openModal(task)}
+                  >
+                    Edit Conclusion
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="w-full text-xs px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  onClick={() => openModal(task)}
+                >
+                  Add Conclusion
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {filteredTasks.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">
+              No tasks found matching your filters
+            </p>
+          </div>
+        )}
       </div>
 
-      {filteredTasks.map(task => (
-        <div key={task.id || task._id} className="border p-4 mb-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold">{task.title}</h3>
-          <p className="text-gray-600">{task.description}</p>
-          <p className="text-sm text-gray-500">Priority: {task.priority}</p>
-          <p className="text-sm text-gray-500">Due Date: {task.dueDate}</p>
-
-          {task.conclusion ? (
-            <div className="mt-2">
-              <p className="text-green-600 font-semibold">Conclusion: {task.conclusion}</p>
-              <p className="text-gray-500 text-sm">
-                Submitted on: {new Date(task.conclusionSubmitTime).toLocaleString()}
-              </p>
-              <button
-                className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                onClick={() => openModal(task)}
-              >
-                Edit Conclusion
-              </button>
-            </div>
-          ) : (
-            <button
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => openModal(task)}
-            >
-              Submit Conclusion
-            </button>
-          )}
-        </div>
-      ))}
-
       {modalTask && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500/40 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold">{modalTask.title}</h3>
-            <textarea
-              className="w-full p-2 border rounded mt-2"
-              placeholder="Enter your conclusion..."
-              value={conclusion}
-              onChange={(e) => setConclusion(e.target.value)}
-            />
-            <div className="flex justify-end mt-4">
-              <button className="px-4 py-2 bg-gray-500 text-white rounded mr-2" onClick={closeModal}>Cancel</button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={handleSubmit}>Submit</button>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md m-4 overflow-hidden">
+            <div className="p-4 border-b border-gray-100">
+              <h3 className="text-lg font-medium text-gray-900">
+                {modalTask.title}
+              </h3>
+            </div>
+            <div className="p-4">
+              <textarea
+                className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter your conclusion..."
+                value={conclusion}
+                onChange={(e) => setConclusion(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2 p-4 bg-gray-50">
+              <button
+                className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
+                onClick={closeModal}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:opacity-50"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
             </div>
           </div>
         </div>

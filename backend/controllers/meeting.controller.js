@@ -101,7 +101,7 @@ exports.updateMeeting = async (req, res) => {
 exports.changeMeetingStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, conclusion } = req.body;
 
     if (!["Pending", "Complete", "Cancel"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
@@ -113,6 +113,7 @@ exports.changeMeetingStatus = async (req, res) => {
     }
 
     meeting.meetingStatus = status;
+    meeting.conclusion = conclusion;
     await meeting.save();
 
     res.status(200).json({ message: "Meeting status updated", meeting });
