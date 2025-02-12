@@ -28,6 +28,8 @@ const taskAssignedRoutes = require("./routes/taskAssigned.routes")
 const meetingRoutes = require("./routes/meeting.routes")
 const contactRoutes = require("./routes/contact.routes")
 const leadRoutes = require("./routes/lead.routes")
+const reminderRoutes = require("./routes/reminder.routes")
+const stickyNoteRoutes = require("./routes/stickyNote.routes")
 
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/super-admin", superAdminRoutes)
@@ -37,5 +39,7 @@ app.use("/api/v1/task-assigned", taskAssignedRoutes)
 app.use("/api/v1/meeting", meetingRoutes)
 app.use("/api/v1/contact", contactRoutes)
 app.use("/api/v1/lead", leadRoutes)
+app.use("/api/v1/reminder", reminderRoutes)
+app.use("/api/v1/sticky-note", stickyNoteRoutes)
 
 module.exports = app;

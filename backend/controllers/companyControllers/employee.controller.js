@@ -6,9 +6,9 @@ const sendEmail = require("../../utils/sendMail");
 // ✅ Verify Employee & Assign Role
 exports.verifyEmployee = async (req, res) => {
   try {
-    const { employeeId, roleId } = req.body;
+    const { employeeId, roleName, permissions } = req.body;
 
-    if (!employeeId || !roleId) {
+    if (!employeeId || !roleName || !permissions) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -29,17 +29,23 @@ exports.verifyEmployee = async (req, res) => {
         .json({ message: "Your company and Employee's company is not same" });
     }
 
-    // 🔹 Assign Role & Verify Employee
-    const role = await Role.findOne({ _id: roleId, company: company._id });
-    if (!role) return res.status(404).json({ message: "Role not found" });
+    for (const module in permissions) {
+      if (permissions[module].create || permissions[module].update || permissions[module].delete) {
+        permissions[module].read = true; // Auto-grant read permission
+      }
+    }
 
-    employee.role = role._id;
+    // Create role
+    const newRole = new Role({ name: roleName, permissions, user: employee._id });
+    await newRole.save();
+
+    employee.role = newRole._id;
     employee.verify = "Verify";
     await employee.save();
 
     // 🔹 Send Verification Email
     const subject = "Employee Verified Successfully";
-    const message = `Dear ${employee.user.name},\n\nYour employment at "${employee.company.name}" has been successfully verified, and you have been assigned the role "${role.name}".\n\nBest regards,\nSupport Team`;
+    const message = `Dear ${employee.user.name},\n\nYour employment at "${employee.company.name}" has been successfully verified, and you have been assigned the role "${roleName}".\n\nBest regards,\nSupport Team`;
 
     await sendEmail(employee.user.email, subject, message);
 
