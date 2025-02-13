@@ -27,7 +27,7 @@ exports.createLead = async (req, res) => {
         let existingClientFindByPhoneNo = await Contacts.findOne({ company: req.user.company, phoneNo: contact.phoneNo });
 
         if (existingClientFindByEmail || existingClientFindByPhoneNo) {
-            companyId = (existingClientFindByEmail)? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
+            companyId = (existingClientFindByEmail) ? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
         } else {
             let newClient = new Contacts({
                 company: req.user.company,
@@ -93,7 +93,7 @@ exports.updateLead = async (req, res) => {
         let existingClientFindByPhoneNo = await Contacts.findOne({ company: req.user.company, phoneNo: contact.phoneNo });
 
         if (existingClientFindByEmail || existingClientFindByPhoneNo) {
-            companyId = (existingClientFindByEmail)? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
+            companyId = (existingClientFindByEmail) ? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
         } else {
             let newClient = new Contacts({
                 company: req.user.company,
@@ -141,7 +141,6 @@ exports.getLeads = async (req, res) => {
             }
             filter.status = status;
         }
-        if (status) filter.status = status;
         if (assignedTo) filter.assignedTo = assignedTo;
 
         // 🔹 Search by Contact Name or Reference Name
@@ -158,16 +157,11 @@ exports.getLeads = async (req, res) => {
         }
 
         const leads = await Lead.find(filter)
-            .populate("for source contact status assignedTo")
+            .populate("for source contact assignedTo createdBy")
             .sort({ createdAt: -1 });
-
-        const totalLeads = await Lead.countDocuments(filter);
 
         return res.status(200).json({
             message: "Leads retrieved successfully",
-            total: totalLeads,
-            page: Number(page),
-            totalPages: Math.ceil(totalLeads / limit),
             data: leads,
         });
 
@@ -182,7 +176,7 @@ exports.getLeadById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const lead = await Lead.findById(id).populate("contact status assignedTo source for");
+        const lead = await Lead.findById(id).populate("contact assignedTo source for createdBy");
         if (!lead) return res.status(404).json({ message: "Lead not found" });
 
         if (String(lead.company) !== String(req.user.company)) {
@@ -201,19 +195,18 @@ exports.getLeadById = async (req, res) => {
 exports.changeLeadStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { statusId } = req.body;
+        const { status } = req.body;
         const company = req.user.company
 
-        if (!statusId) return res.status(400).json({ message: "Status is required" });
+        if (!['New', 'Contacted', 'Qualified', 'Converted', 'Closed'].includes(status)) {
+            return res.status(400).json({ message: "Invalid priority value" });
+        }
 
-        const fetchStatus = await LeadStatusLabel.findOne({ _id: statusId, company })
-        if (!fetchStatus) return res.status(404).json({ message: "Lead Status not found" });
-
-        const lead = await await Lead.findOne({ _id: id, company });
+        const lead = await Lead.findOne({ _id: id, company });
         if (!lead) return res.status(404).json({ message: "Lead not found" });
 
 
-        lead.status = fetchStatus._id;
+        lead.status = status;
         await lead.save();
 
         return res.status(200).json({ message: "Lead status updated successfully", data: lead });

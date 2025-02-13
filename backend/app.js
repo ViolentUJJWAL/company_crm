@@ -31,6 +31,7 @@ const leadRoutes = require("./routes/lead.routes")
 const reminderRoutes = require("./routes/reminder.routes")
 const stickyNoteRoutes = require("./routes/stickyNote.routes")
 const calendarRoutes = require("./routes/calendar.routes")
+const dashboardRoutes = require("./routes/dashboard.routes")
 
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/super-admin", superAdminRoutes)
@@ -43,5 +44,6 @@ app.use("/api/v1/lead", leadRoutes)
 app.use("/api/v1/reminder", reminderRoutes)
 app.use("/api/v1/sticky-note", stickyNoteRoutes)
 app.use("/api/v1/calender-data", calendarRoutes)
+app.use("/api/v1/dashboard-data", dashboardRoutes)
 
 module.exports = app;
