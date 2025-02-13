@@ -6,8 +6,7 @@ import { MdEmail } from "react-icons/md";
 import { FaWhatsapp, FaLink } from "react-icons/fa6";
 import { IoPersonAdd } from "react-icons/io5";
 import { FiSend } from "react-icons/fi";
-// import leadsJson from './leads.json'; 
-import leadServices from '../../services/leadServices';
+import leadsJson from './leads.json'; 
 
 const LeadCard = ({ lead }) => (
   <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 text-left hover:shadow-[0_8px_10px_rgba(0,0,0,0.2)] transition duration-300   ">
@@ -30,75 +29,43 @@ const LeadCard = ({ lead }) => (
   </div>
 );
 
-
-
 function Lead() {
   const [leads, setLeads] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState("All Labels");
   const [searchTerm, setSearchTerm] = useState("");
   const [url, setUrl] = useState("https://www.example.com");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
 
   const [newLead, setNewLead] = useState({
-    label: "",
-    name: "",
-    phone: "",
-    cd: "",
-    by: "",
-    to: "",
-    nfd: "",
+    label: '',
+    name: '',
+    phone: '',
+    cd: '',
+    by: '',
+    to: '',
+    nfd: ''
   });
-
-
-
-   const fetchLeads = async () => {
-      try {
-        const data = await leadServices.getLeads();
-        if (Array.isArray(data.leads)) {
-          setLeads(data.leads);
-        } else {
-          console.warn("⚠ Invalid Response:", data);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching leads:", error);
-      }
-    };
-  
-    useEffect(() => {
-      fetchLeads();
-    }, []);
-
-
-    
 
   const labels = ["All Labels", "Engineer", "Leader", "Graphic Designer", "Developer"];
 
-  // useEffect(() => {
-  //   setLeads(leadsJson);
-  // }, []);
+  useEffect(() => {
+    setLeads(leadsJson);
+  }, []);
 
   const handleFormChange = (e) => {
-    setNewLead({ ...newLead, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setNewLead({ ...newLead, [name]: value });
   };
 
-  const handleFormSubmit = async (e) => {
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await leadServices.createLead(newLead);
-      console.log("Lead created successfully:", response);
-      setShowForm(false); // Close modal on success
-      setNewLead({ label: "", name: "", phone: "", cd: "", by: "", to: "", nfd: "" });
-    } catch (err) {
-      setError(err || "Failed to create lead");
-    } finally {
-      setLoading(false);
-    }
+    const updatedLeads = [...leads];
+    updatedLeads[0].leads.push(newLead);
+    updatedLeads[0].count += 1;
+    setLeads(updatedLeads);
+    setShowForm(false);
+    setNewLead({ label: '', name: '', phone: '', cd: '', by: '', to: '', nfd: '' });
   };
 
   const filteredLeads = leads.map(category => ({
@@ -208,13 +175,10 @@ function Lead() {
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-md w-96">
             <h3 className="text-xl font-semibold mb-4">Add New Lead</h3>
-            {error && <p className="text-red-500">{error}</p>}
             <form onSubmit={handleFormSubmit}>
               <select name="label" value={newLead.label} onChange={handleFormChange} className="w-full p-2 mb-2 border rounded-md">
                 {labels.map((label, index) => (
-                  <option key={index} value={label}>
-                    {label}
-                  </option>
+                  <option key={index} value={label}>{label}</option>
                 ))}
               </select>
               <input type="text" name="name" placeholder="Name" value={newLead.name} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
@@ -223,13 +187,9 @@ function Lead() {
               <input type="text" name="by" placeholder="By" value={newLead.by} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
               <input type="text" name="to" placeholder="To" value={newLead.to} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
               <input type="datetime-local" name="nfd" placeholder="NFD" value={newLead.nfd} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <div className="flex justify-between">
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded-md">
-                  {loading ? "Adding..." : "Add Lead"}
-                </button>
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-red-500 text-white rounded-md">
-                  Cancel
-                </button>
+              <div className='flex justify-between'>
+              <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md">Add Lead</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-red-500 text-white rounded-md">Cancel</button>
               </div>
             </form>
           </div>
@@ -242,13 +202,12 @@ function Lead() {
           //   <h3 className={`font-semibold p-3 bg-gray-200 `}>{column.title} ({column.count})</h3>
             <Droppable key={column.title} droppableId={column.title}>
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className={`p-2 rounded-lg shadow-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
-                  <h3 className={` font-bold  p-1 flex justify-between ${
+                <div ref={provided.innerRef} {...provided.droppableProps} className={`p-4 rounded-lg shadow-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
+                  <h3 className={` font-bold mb-2  p-3 flex justify-between ${
                      column.title === "New"
                      ? "bg-teal-300 " : column.title === "Processing" ? "bg-yellow-300" : column.title=== "Close-by" ? "bg-purple-300" :column.title === "Confirm" ? "bg-green-300" :"bg-red-300"
                    
-                  }`}> <p>{column.title}</p>
-                   <div className={`w-[25px] h-[25px] rounded-3xl bg-amber-700 text-center ${
+                  }`}> <p>{column.title}</p> <div className={`w-[25px] h-[25px] rounded-3xl bg-amber-700 text-center ${
                     column.title === "New"
                     ? "bg-teal-200 " : column.title === "Processing" ? "bg-yellow-200" : column.title=== "Close-by" ? "bg-purple-200" :column.title === "Confirm" ? "bg-green-200" :"bg-red-200"
                   

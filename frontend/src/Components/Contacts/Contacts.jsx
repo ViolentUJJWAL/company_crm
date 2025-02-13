@@ -146,6 +146,8 @@ const Contacts = () => {
     setDetailModalOpen(true);
   };
 
+  console.log(contacts)
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
       {/* Alert */}
@@ -305,6 +307,7 @@ const Contacts = () => {
               <h2 className="text-3xl font-bold text-gray-800">
                 {selectedContact.name}
               </h2>
+                <img src={selectedContact.businessCard?.url} alt={selectedContact.name} />
               <div className="flex items-center gap-2 mt-2">
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${
