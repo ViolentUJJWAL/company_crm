@@ -11,8 +11,7 @@ const emptyTempFolder = require("../utils/emptyTempFolder");
 // ✅ Super Admin Registration
 exports.registerSuperAdmin = async (req, res) => {
   try {
-    const { name, email, phoneNo, password, supreAdmincreatePassword } =
-      req.body;
+    const { name, email, phoneNo, password, supreAdmincreatePassword } = req.body;
 
     // 🔸 Validation: Check required fields
     if (!name || !email || !phoneNo || !password || !supreAdmincreatePassword) {

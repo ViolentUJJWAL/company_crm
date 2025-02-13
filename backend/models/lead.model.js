@@ -12,11 +12,6 @@ const leadSchema = new mongoose.Schema(
       ref: 'LeadSource',
       required: [true, 'LeadSource reference is required'],
     },
-    priority: {
-      type: String,
-      enum: ['Low', 'Medium', 'High'],
-      default: 'Medium',
-    },
     contact: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Contacts',
@@ -43,18 +38,18 @@ const leadSchema = new mongoose.Schema(
       },
     ],
     status: {
-      // type: String,
-      // enum: ['New', 'Contacted', 'Qualified', 'Converted', 'Closed'],
-      // default: 'New',
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'LeadStatusLabel',
-      required: [true, 'Lead Status Label is required'],
+      type: String,
+      enum: ['New', 'Contacted', 'Qualified', 'Converted', 'Closed'],
+      default: 'New',
     },
     remark: { type: String, trim: true },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Employee',
-      required: [true, 'Assigned employee reference is required'],
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     company: {
       type: mongoose.Schema.Types.ObjectId,

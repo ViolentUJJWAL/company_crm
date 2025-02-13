@@ -4,70 +4,52 @@ const Lead = require("../models/lead.model");
 const LeadFor = require("../models/leadFor.model");
 const LeadSource = require("../models/leadSource.model");
 const LeadStatusLabel = require("../models/leadStatusLabel.model");
+const User = require("../models/user.model");
 
 // ✅ Create a Lead
 exports.createLead = async (req, res) => {
-  console.log("req.body", req.body);
-  try {
-    const {
-      leadForId,
-      leadSourceId,
-      priority,
-      contactId,
-      reference,
-      statusId,
-      remark,
-      assignedTo,
-    } = req.body;
+    try {
+        const { leadForId, leadSourceId, contact, reference, remark, assignedTo } = req.body;
 
-    if (
-      !leadForId ||
-      !leadSourceId ||
-      !priority ||
-      !contactId ||
-      !statusId ||
-      !assignedTo
-    ) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+        if (!leadForId || !leadSourceId || !contact) {
+            return res.status(400).json({ message: "All fields are required" })
+        }
 
-    if (!["Low", "Medium", "High"].includes(priority))
-      return res
-        .status(400)
-        .json({ message: "Priority must be 'Low', 'Medium', or 'High'" });
+        const company = req.user.company
 
-    const company = req.user.company;
+        if (!await LeadFor.findOne({ _id: leadForId, company, isActive: true })) return res.status(404).json({ message: "Lead For not found" });
+        if (!await LeadSource.findOne({ _id: leadSourceId, company, isActive: true })) return res.status(404).json({ message: "Lead Source not found" });
+        if (assignedTo && !await Employee.findOne({ _id: assignedTo, company, isActive: true })) return res.status(404).json({ message: "Assigned To Employee not found" });
 
-    if (!(await LeadFor.findOne({ _id: leadForId, company, isActive: true })))
-      return res.status(404).json({ message: "Lead For not found" });
-    if (
-      !(await LeadSource.findOne({
-        _id: leadSourceId,
-        company,
-        isActive: true,
-      }))
-    )
-      return res.status(404).json({ message: "Lead Source not found" });
-    if (!(await LeadStatusLabel.findOne({ _id: statusId, company })))
-      return res.status(404).json({ message: "Lead Status not found" });
-    if (!(await Contacts.findOne({ _id: contactId, company })))
-      return res.status(404).json({ message: "Client Contacts not found" });
-    if (!(await Employee.findOne({ _id: assignedTo, company, isActive: true })))
-      return res
-        .status(404)
-        .json({ message: "Assigned To Employee not found" });
+        let companyId = null;
 
-    const newLead = new Lead({
-      for: leadForId,
-      source: leadSourceId,
-      priority,
-      contact: contactId,
-      reference,
-      status: statusId,
-      remark,
-      assignedTo,
-      company,
-    });
+        let existingClientFindByEmail = await Contacts.findOne({ company: req.user.company, email: contact.email });
+        let existingClientFindByPhoneNo = await Contacts.findOne({ company: req.user.company, phoneNo: contact.phoneNo });
+
+        if (existingClientFindByEmail || existingClientFindByPhoneNo) {
+            companyId = (existingClientFindByEmail)? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
+        } else {
+            let newClient = new Contacts({
+                company: req.user.company,
+                name: client.name,
+                email: client.email,
+                phoneNo: client.phoneNo
+            });
+
+            await newClient.save();  // Save new client
+            companyId = newClient._id;    // Return new client's ID
+        }
+
+        const newLead = new Lead({
+            for: leadForId,
+            source: leadSourceId,
+            contact: companyId,
+            reference,
+            remark,
+            assignedTo,
+            createdBy: req.user._id,
+            company,
+        });
 
     const savedLead = await newLead.save();
     return res
@@ -83,67 +65,49 @@ exports.createLead = async (req, res) => {
 
 // ✅ Update a Lead
 exports.updateLead = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      leadForId,
-      leadSourceId,
-      priority,
-      contactId,
-      reference,
-      statusId,
-      remark,
-      assignedTo,
-    } = req.body;
-    const company = req.user.company;
+    try {
+        const { id } = req.params;
+        const { leadForId, leadSourceId, contact, reference, status, remark, assignedTo } = req.body;
+        const company = req.user.company;
 
     // 🔹 Check if lead exists
     const lead = await Lead.findOne({ _id: id, company });
     if (!lead) return res.status(404).json({ message: "Lead not found" });
 
-    // 🔹 Validate Priority
-    if (priority && !["Low", "Medium", "High"].includes(priority)) {
-      return res
-        .status(400)
-        .json({ message: "Priority must be 'Low', 'Medium', or 'High'" });
-    }
+        // 🔹 Validate status
+        if (status && !['New', 'Contacted', 'Qualified', 'Converted', 'Closed'].includes(status)) {
+            return res.status(400).json({ message: "status must be 'New', 'Contacted', 'Qualified', 'Converted', 'Closed'" });
+        }
 
-    // 🔹 Validate References if Provided
-    if (
-      leadForId &&
-      !(await LeadFor.findOne({ _id: leadForId, company, isActive: true }))
-    ) {
-      return res.status(404).json({ message: "Lead For not found" });
-    }
-    if (
-      leadSourceId &&
-      !(await LeadSource.findOne({
-        _id: leadSourceId,
-        company,
-        isActive: true,
-      }))
-    ) {
-      return res.status(404).json({ message: "Lead Source not found" });
-    }
-    if (
-      statusId &&
-      !(await LeadStatusLabel.findOne({
-        _id: statusId,
-        company,
-        isActive: true,
-      }))
-    ) {
-      return res.status(404).json({ message: "Lead Status not found" });
-    }
-    if (contactId && !(await Contacts.findOne({ _id: contactId, company }))) {
-      return res.status(404).json({ message: "Client Contact not found" });
-    }
-    if (
-      assignedTo &&
-      !(await Employee.findOne({ _id: assignedTo, company, isActive: true }))
-    ) {
-      return res.status(404).json({ message: "Assigned Employee not found" });
-    }
+        // 🔹 Validate References if Provided
+        if (leadForId && !(await LeadFor.findOne({ _id: leadForId, company, isActive: true }))) {
+            return res.status(404).json({ message: "Lead For not found" });
+        }
+        if (leadSourceId && !(await LeadSource.findOne({ _id: leadSourceId, company, isActive: true }))) {
+            return res.status(404).json({ message: "Lead Source not found" });
+        }
+        if (assignedTo && !(await Employee.findOne({ _id: assignedTo, company, isActive: true }))) {
+            return res.status(404).json({ message: "Assigned Employee not found" });
+        }
+
+        let companyId = null;
+
+        let existingClientFindByEmail = await Contacts.findOne({ company: req.user.company, email: contact.email });
+        let existingClientFindByPhoneNo = await Contacts.findOne({ company: req.user.company, phoneNo: contact.phoneNo });
+
+        if (existingClientFindByEmail || existingClientFindByPhoneNo) {
+            companyId = (existingClientFindByEmail)? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
+        } else {
+            let newClient = new Contacts({
+                company: req.user.company,
+                name: client.name,
+                email: client.email,
+                phoneNo: client.phoneNo
+            });
+
+            await newClient.save();  // Save new client
+            companyId = newClient._id;    // Return new client's ID
+        }
 
     // 🔹 Update Lead Data
     lead.for = leadForId || lead.for;
@@ -170,26 +134,21 @@ exports.updateLead = async (req, res) => {
 
 // ✅ Get All Leads (with optional filters)
 exports.getLeads = async (req, res) => {
-  try {
-    const {
-      search,
-      priority,
-      status,
-      assignedTo
-    } = req.query;
-    const company = req.user.company; // Get the company ID from the authenticated user
+    try {
+        const { search, status, assignedTo } = req.query;
+        const company = req.user.company; // Get the company ID from the authenticated user
 
     let filter = { company }; // Ensure filtering by company
 
-    // 🔹 Apply Filters
-    if (priority) {
-      if (!["Low", "Medium", "High"].includes(priority)) {
-        return res.status(400).json({ message: "Invalid priority value" });
-      }
-      filter.priority = priority;
-    }
-    if (status) filter.status = status;
-    if (assignedTo) filter.assignedTo = assignedTo;
+        // 🔹 Apply Filters
+        if (status) {
+            if (!['New', 'Contacted', 'Qualified', 'Converted', 'Closed'].includes(status)) {
+                return res.status(400).json({ message: "Invalid priority value" });
+            }
+            filter.status = status;
+        }
+        if (status) filter.status = status;
+        if (assignedTo) filter.assignedTo = assignedTo;
 
     // 🔹 Search by Contact Name or Reference Name
     if (search) {
@@ -204,15 +163,9 @@ exports.getLeads = async (req, res) => {
       ];
     }
 
-    const leads = await Lead.find(filter)
-      .populate("for source contact status")
-      .populate({
-        path: "assignedTo",
-        populate: {
-          path: "user", // Assuming assignedTo has a reference to a User model
-        },
-      })
-      .sort({ createdAt: -1 });
+        const leads = await Lead.find(filter)
+            .populate("for source contact status assignedTo")
+            .sort({ createdAt: -1 });
 
     const totalLeads = await Lead.countDocuments(filter);
 

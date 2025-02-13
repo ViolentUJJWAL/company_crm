@@ -178,3 +178,51 @@ exports.toggleEmployeeStatus = async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 };
+
+exports.changePermission = async (req, res) => {
+  try {
+    const { employeeId, roleName, permissions } = req.body;
+
+    if (!employeeId || !roleName || !permissions) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const company = await Company.findById(req.user.company);
+
+    // 🔹 Find the employee
+    const employee = await Employee.findOne({
+      _id: employeeId,
+      company: company._id,
+      isActive: true,
+      verify: "Verify"
+    }).populate("user");
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
+
+    // 🔹 Check if the company is verified
+    if (!employee.company.equals(company._id)) {
+      return res
+        .status(400)
+        .json({ message: "Your company and Employee's company is not same" });
+    }
+
+    for (const module in permissions) {
+      if (permissions[module].create || permissions[module].update || permissions[module].delete) {
+        permissions[module].read = true; // Auto-grant read permission
+      }
+    }
+
+    // Create role
+    const newRole = await Role.findByIdAndUpdate(employee.role, { name: roleName, permissions }, {new: true});
+    if(!newRole) return res.status(404).json({ message: "Employee Role not found" });
+
+    return res.status(200).json({
+      message: "Employee permissions change successfully",
+      employee,
+    });
+
+  } catch (error) {
+    console.error("Change Employee Permission Error:", error);
+    return res.status(500).json({ message: "Server error", error });
+  }
+}

@@ -3,7 +3,6 @@ const Lead = require("../models/lead.model");
 const Meeting = require("../models/meeting.model");
 const TaskAssigned = require("../models/taskAssigned.model");
 const Todo = require("../models/todo.model");
-const Role = require("../models/role.model");
 const { fetchReminders } = require("./reminder.controller");
 
 // 📌 Fetch tasks, todos, meetings, and leads within a date range with permission check
@@ -27,38 +26,57 @@ exports.fetchDataByDateRange = async (req, res) => {
         const company = req.user.company;
         const user = req.user;
 
-        // Find employee details and their role
-        const employee = await Employee.findOne({ user: user._id }).populate("role");
-        const role = employee?.role;
+        let role = null;
+        let employeeId = null
+        let isCompanyAdmin = user.role === "CompanyAdmin";
+
+        // If the user is not a CompanyAdmin, check employee role & permissions
+        if (!isCompanyAdmin) {
+            const employee = await Employee.findOne({ user: user._id }).populate("role");
+            if (!employee || !employee.role) {
+                return res.status(403).json({ message: "Employee role not found or insufficient permissions" });
+            }
+            role = employee.role;
+            employeeId = employee._id
+        }
 
         let data = {};
 
-        // Fetch Tasks if the employee has read permission
-        if (role.permissions.tasks.read || user.role === "CompanyAdmin") {
+        if(user.role === "Employee"){
+            data.yourWork = await TaskAssigned.find({
+                dueDate: { $gte: startDate, $lte: endDate },
+                company,
+                assignedTo: employeeId
+            }).populate("assignedBy");
+        }
+
+        // Fetch Tasks if the employee has read permission or user is CompanyAdmin
+        if (isCompanyAdmin || role.permissions.tasks.read) {
             data.tasks = await TaskAssigned.find({
                 dueDate: { $gte: startDate, $lte: endDate },
                 company,
             }).populate("assignedTo assignedBy");
         }
 
-        // Fetch Todos if the employee has read permission
-        if (role.permissions.todos.read || user.role === "CompanyAdmin") {
+        // Fetch Todos if the employee has read permission or user is CompanyAdmin
+        if (isCompanyAdmin || role.permissions.todos.read) {
             data.todos = await Todo.find({
                 dueDate: { $gte: startDate, $lte: endDate },
                 company,
+                user: req.user._id,
             });
         }
 
-        // Fetch Meetings if the employee has read permission
-        if (role.permissions.meeting.read || user.role === "CompanyAdmin") {
+        // Fetch Meetings if the employee has read permission or user is CompanyAdmin
+        if (isCompanyAdmin || role.permissions.meeting.read) {
             data.meetings = await Meeting.find({
                 scheduledTime: { $gte: startDate, $lte: endDate },
                 company,
             });
         }
 
-        // Fetch Leads if the employee has read permission
-        if (role.permissions.leads.read || user.role === "CompanyAdmin") {
+        // Fetch Leads if the employee has read permission or user is CompanyAdmin
+        if (isCompanyAdmin || role.permissions.leads.read) {
             data.leads = await Lead.find({
                 "followUps.date": { $gte: startDate, $lte: endDate },
                 company,
