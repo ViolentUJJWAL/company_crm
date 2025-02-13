@@ -41,11 +41,12 @@ export const getEmployeeById = async (employeeId) => {
 };
 
 // ✅ Verify Employee and Assign Role
-export const verifyEmployee = async (employeeId, roleId) => {
+export const verifyEmployee = async (employeeId, roleName, permissions) => {
   try {
     const response = await api.post("/company/employee/verification", {
       employeeId,
-      roleId,
+      roleName,
+      permissions,
     });
     return response.data;
   } catch (error) {

@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen }) => {
     { icon: Home, label: "Dashboard", navigate: "/" },
     { icon: Filter, label: "Todo", navigate: "/todo" },
     { icon: Filter, label: "Lead", navigate: "/lead" },
-    { icon: Filter, label: "Roles", navigate: "/roles" },
+    // { icon: Filter, label: "Roles", navigate: "/roles" },
     {
       icon: Filter,
       label: "Emp. Verification",

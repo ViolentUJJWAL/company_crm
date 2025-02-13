@@ -1,84 +1,195 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import remindersData from "./Reminder.json";
-import { FaEdit, FaSave, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import {
+  deleteReminder,
+  getRemindersByDateRange,
+} from "../../services/reminderServices";
+import { toast } from "react-toastify";
 
 const ReminderList = () => {
   const [reminders, setReminders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateRange, setDateRange] = useState({
+    startDateTime: new Date().toISOString().split("T")[0],
+    endDateTime: new Date().toISOString().split("T")[0],
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    setReminders(remindersData);
-  }, []);
+    fetchReminders();
+  }, [dateRange]);
 
-  const handleDelete = (index) => {
-    const updatedReminders = reminders.filter((_, i) => i !== index);
-    setReminders(updatedReminders);
+  const fetchReminders = async () => {
+    try {
+      const response = await getRemindersByDateRange(
+        dateRange.startDateTime,
+        dateRange.endDateTime
+      );
+      console.log("response", response.reminders);
+      setReminders(response.reminders);
+    } catch (error) {
+      console.error("Error fetching reminders:", error);
+    }
   };
 
-  const handleEdit = (index) => {
-    console.log("Editing reminder:", reminders[index]);
-    navigate(`/reminderForm?edit=${index}`); // एडिट पेज पर भेजने के लिए
+  const handleDelete = async (id) => {
+    try {
+      await deleteReminder(id);
+      toast.success("Reminder deleted successfully!");
+      fetchReminders();
+    } catch (error) {
+      console.error("Error deleting reminder:", error);
+      toast.error("Failed to delete reminder.");
+    }
+  };
+
+  const filteredReminders = reminders.filter((reminder) =>
+    reminder.message.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const formatDateTime = (dateTime) => {
+    const date = new Date(dateTime);
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
+  const getTypeLabel = (reminder) => {
+    if (reminder.generated) {
+      return (
+        <span className="text-blue-600 text-xs">{`${reminder.type} (Generated)`}</span>
+      );
+    }
+    return <span className="text-gray-600 text-xs">{reminder.type}</span>;
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h2 className="text-2xl font-bold mb-4">Reminder List</h2>
-      <div className="flex justify-end items-center mb-5 gap-4">
-        <input
-          type="text"
-          placeholder="Search Reminder..."
-          className="p-2 border rounded-md"
-        />
-        <button
-          onClick={() => navigate("/reminderForm")}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          + Add Reminder
-        </button>
+    <div>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">Reminders</h2>
+          <button
+            onClick={() => navigate("/reminderForm")}
+            className="bg-blue-500 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            + New Reminder
+          </button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search reminders..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={dateRange.startDateTime}
+                  onChange={(e) =>
+                    setDateRange((prev) => ({
+                      ...prev,
+                      startDateTime: e.target.value,
+                    }))
+                  }
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={dateRange.endDateTime}
+                  onChange={(e) =>
+                    setDateRange((prev) => ({
+                      ...prev,
+                      endDateTime: e.target.value,
+                    }))
+                  }
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left">Message</th>
+                <th className="px-4 py-3 text-left">Type</th>
+                <th className="px-4 py-3 text-left">Schedule</th>
+                <th className="px-4 py-3 text-center w-24">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredReminders.map((reminder) => (
+                <tr key={reminder._id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <p className="text-sm text-gray-900 truncate max-w-md">
+                      {reminder.message}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3">
+                    {getTypeLabel(reminder)}
+                    {reminder.type === "Weekly" && reminder.days && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {reminder.days
+                          .map(
+                            (day) =>
+                              ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+                                day
+                              ]
+                          )
+                          .join(", ")}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="text-gray-400 mr-2" size={12} />
+                      <span className="text-xs text-gray-600">
+                        {formatDateTime(reminder.dateTime)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-center gap-3">
+                      <button
+                        onClick={() => handleDelete(reminder._id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <table className="w-full bg-white shadow-md rounded-lg overflow-hidden">
-        <thead className="bg-gray-200">
-          <tr className="text-center">
-            <th className="py-2">No.</th>
-            <th className="py-2">Message</th>
-            <th className="py-2">Date</th>
-            <th className="py-2">Time</th>
-            <th className="py-2">Type</th>
-            <th className="py-2">Assign To</th>
-            <th className="py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reminders.map((reminder, index) => (
-            <tr key={index} className="border-b hover:bg-gray-100 text-center">
-              <td className="p-2">{index + 1}</td>
-              <td className="p-2">{reminder.message}</td>
-              <td className="p-2">{reminder.date}</td>
-              <td className="p-2">{reminder.time}</td>
-              <td className="p-2">{reminder.type}</td>
-              <td className="p-2">{reminder.assignTo}</td>
-              <td className="p-2 flex justify-center gap-4">
-                <button
-                  onClick={() => handleEdit(index)}
-                  className="text-blue-500 hover:text-blue-700"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(index)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <FaTrash />
-                </button>
-                <button className="text-green-500 hover:text-green-700">
-                  <FaSave />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 };

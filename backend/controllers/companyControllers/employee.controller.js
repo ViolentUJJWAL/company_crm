@@ -6,6 +6,7 @@ const sendEmail = require("../../utils/sendMail");
 // ✅ Verify Employee & Assign Role
 exports.verifyEmployee = async (req, res) => {
   try {
+    console.log('req.body', req.body)
     const { employeeId, roleName, permissions } = req.body;
 
     if (!employeeId || !roleName || !permissions) {

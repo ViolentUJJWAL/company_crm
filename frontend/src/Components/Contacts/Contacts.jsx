@@ -126,6 +126,7 @@ const Contacts = () => {
   };
 
   const handleEdit = (contact) => {
+    console.log("contact", contact);
     setSelectedContact(contact);
     setFormData({
       name: contact.name,

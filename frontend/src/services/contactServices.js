@@ -43,14 +43,21 @@ const contactServices = {
     try {
       const formData = new FormData();
 
-      // Append text data
+      // Append text data (excluding address and businessCard)
       Object.keys(contactData).forEach((key) => {
-        if (key !== "businessCard") {
+        if (key !== "businessCard" && key !== "address") {
           formData.append(key, contactData[key]);
         }
       });
 
-      // Append file if exists
+      // Append address fields separately
+      if (contactData.address) {
+        Object.keys(contactData.address).forEach((key) => {
+          formData.append(`address[${key}]`, contactData.address[key]);
+        });
+      }
+
+      // Append file if it exists
       if (contactData.businessCard) {
         formData.append("businessCard", contactData.businessCard);
       }
@@ -60,6 +67,7 @@ const contactServices = {
           "Content-Type": "multipart/form-data",
         },
       });
+
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
