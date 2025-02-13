@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const leadSchema = new mongoose.Schema(
   {
+    title: {
+      type: String,
+      required: [true, 'Lead title is required'],
+    },
     for: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LeadFor',

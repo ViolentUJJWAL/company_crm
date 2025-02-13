@@ -3,15 +3,13 @@ const Employee = require("../models/employee.model");
 const Lead = require("../models/lead.model");
 const LeadFor = require("../models/leadFor.model");
 const LeadSource = require("../models/leadSource.model");
-const LeadStatusLabel = require("../models/leadStatusLabel.model");
-const User = require("../models/user.model");
 
 // ✅ Create a Lead
 exports.createLead = async (req, res) => {
     try {
-        const { leadForId, leadSourceId, contact, reference, remark, assignedTo } = req.body;
+        const { title, leadForId, leadSourceId, contact, reference, remark, assignedTo } = req.body;
 
-        if (!leadForId || !leadSourceId || !contact) {
+        if (!leadForId || !leadSourceId || !contact || !title) {
             return res.status(400).json({ message: "All fields are required" })
         }
 
@@ -41,6 +39,7 @@ exports.createLead = async (req, res) => {
         }
 
         const newLead = new Lead({
+            title,
             for: leadForId,
             source: leadSourceId,
             contact: companyId,
@@ -64,7 +63,7 @@ exports.createLead = async (req, res) => {
 exports.updateLead = async (req, res) => {
     try {
         const { id } = req.params;
-        const { leadForId, leadSourceId, contact, reference, status, remark, assignedTo } = req.body;
+        const {title, leadForId, leadSourceId, contact, reference, status, remark, assignedTo } = req.body;
         const company = req.user.company;
 
         // 🔹 Check if lead exists
@@ -87,13 +86,13 @@ exports.updateLead = async (req, res) => {
             return res.status(404).json({ message: "Assigned Employee not found" });
         }
 
-        let companyId = null;
+        let contactId = null;
 
         let existingClientFindByEmail = await Contacts.findOne({ company: req.user.company, email: contact.email });
         let existingClientFindByPhoneNo = await Contacts.findOne({ company: req.user.company, phoneNo: contact.phoneNo });
 
         if (existingClientFindByEmail || existingClientFindByPhoneNo) {
-            companyId = (existingClientFindByEmail) ? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
+            contactId = (existingClientFindByEmail) ? existingClientFindByEmail._id : existingClientFindByPhoneNo._id; // If exists, return ID
         } else {
             let newClient = new Contacts({
                 company: req.user.company,
@@ -103,16 +102,16 @@ exports.updateLead = async (req, res) => {
             });
 
             await newClient.save();  // Save new client
-            companyId = newClient._id;    // Return new client's ID
+            contactId = newClient._id;    // Return new client's ID
         }
 
         // 🔹 Update Lead Data
         lead.for = leadForId || lead.for;
+        lead.title = title || lead.title;
         lead.source = leadSourceId || lead.source;
-        lead.priority = priority || lead.priority;
         lead.contact = contactId || lead.contact;
         lead.reference = reference || lead.reference;
-        lead.status = statusId || lead.status;
+        lead.status = status || lead.status;
         lead.remark = remark || lead.remark;
         lead.assignedTo = assignedTo || lead.assignedTo;
 

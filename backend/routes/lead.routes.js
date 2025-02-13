@@ -18,7 +18,7 @@ router.patch('/status/:id',authMiddleware, checkActiveStatus, checkRole("Company
 
 // followUps
 router.post('/follow-up/add/:id',authMiddleware, checkActiveStatus, checkRole("CompanyAdmin", "Employee"), checkPermission('leads', 'update'), addFollowUp);
-router.put('/follow-up/update/:id/:followUpId ',authMiddleware, checkActiveStatus, checkRole("CompanyAdmin", "Employee"), checkPermission('leads', 'update'), updateFollowUp);
+router.put('/follow-up/update/:id/:followUpId',authMiddleware, checkActiveStatus, checkRole("CompanyAdmin", "Employee"), checkPermission('leads', 'update'), updateFollowUp);
 
 // Get leadss with filters
 router.get('/list',authMiddleware, checkActiveStatus, checkRole("CompanyAdmin", "Employee"), checkPermission('leads', 'read'), getLeads);
