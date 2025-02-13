@@ -27,7 +27,7 @@ exports.getDashboardData = async (req, res) => {
         let data = {};
 
         // Fetch Leads (only if user has read permission or is CompanyAdmin)
-        if (isCompanyAdmin || role.permissions.leads.read) {
+        if (isCompanyAdmin || role?.permissions.leads.read) {
             data.latestLeads = await Lead.find({
                 company
             })
@@ -37,7 +37,7 @@ exports.getDashboardData = async (req, res) => {
         }
 
         // Fetch Meetings (only if user has read permission or is CompanyAdmin)
-        if (isCompanyAdmin || role.permissions.meeting.read) {
+        if (isCompanyAdmin || role?.permissions.meeting.read) {
             data.todayMeetings = await Meeting.find({
                 company,
                 scheduledTime: { $gte: today, $lt: tomorrow }
@@ -45,7 +45,7 @@ exports.getDashboardData = async (req, res) => {
         }
 
         // 📌 Fetch Tasks (Only if user has permission or is CompanyAdmin)
-        if (!isCompanyAdmin || role.permissions.tasks.read) {
+        if (!isCompanyAdmin || role?.permissions.tasks.read) {
             data.tasks = await TaskAssigned.find({
                 assignedTo: employee._id,
                 company,
@@ -102,8 +102,8 @@ exports.getDashboardData = async (req, res) => {
             ]),
         ]);
 
-        if(isCompanyAdmin || role.permissions.leads.read){
-            date.chartDate = {
+        if(isCompanyAdmin || role?.permissions.leads.read){
+            data.chartDate = {
                 statusStats, sourceStats, forStats  
             }
         }
