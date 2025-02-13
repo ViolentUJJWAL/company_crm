@@ -75,6 +75,7 @@ exports.toggleCompanyStatus = async (req, res) => {
         return res.status(500).json({ message: "Server error", error });
     }
 };
+
 // ✅ get all Companies 
 exports.getAllCompanies  = async (req, res) => {
     try {

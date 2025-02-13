@@ -6,7 +6,7 @@ exports.addStickyNote = async (req, res) => {
         const { type, message, url } = req.body;
 
         if ( !type || !message) {
-            return res.status(400).json({ message: "User, type, and message are required" });
+            return res.status(400).json({ message: "type, and message are required" });
         }
 
         const newNote = new StickyNote({ user: req.user._id , type, message, url });
