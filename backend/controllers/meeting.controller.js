@@ -1,27 +1,49 @@
 const Contacts = require("../models/contact.model");
 const Lead = require("../models/lead.model");
 const Meeting = require("../models/meeting.model");
-
+const sendEmail = require("../utils/sendMail");
 
 // Create Meeting
 exports.createMeeting = async (req, res) => {
+  console.log("req.body", req.body);
   try {
-    const { title, addressAndLink, participants, forLead, scheduledTime, agenda, addClient } = req.body;
+    const {
+      title,
+      addressAndLink,
+      participants,
+      forLead,
+      scheduledTime,
+      agenda,
+      addClient,
+    } = req.body;
 
-    if (!title || !participants || !scheduledTime || !agenda || !addressAndLink) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+    if (
+      !title ||
+      !participants ||
+      !scheduledTime ||
+      !agenda ||
+      !addressAndLink
+    ) {
+      return res
+        .status(400)
+        .json({ message: "All required fields must be filled" });
     }
 
     if (!Array.isArray(participants) || participants.length === 0) {
-      return res.status(400).json({ message: "At least one employee must be added to the meeting" });
+      return res.status(400).json({
+        message: "At least one employee must be added to the meeting",
+      });
     }
 
-    const addParticipants = []
+    let addParticipants = [];
 
-    if (Array.isArray(addClient) && addClient.length > 0) {
+    if (Array.isArray(addClient)) {
       addParticipants = await Promise.all(
         addClient.map(async (client) => {
-          let existingClient = await Contacts.findOne({ company: req.user.company, email: client.email });
+          let existingClient = await Contacts.findOne({
+            company: req.user.company,
+            email: client.email,
+          });
 
           if (existingClient) {
             return existingClient._id; // If exists, return ID
@@ -29,11 +51,12 @@ exports.createMeeting = async (req, res) => {
             let newClient = new Contacts({
               company: req.user.company,
               name: client.name,
-              email: client.email
+              email: client.email,
+              phoneNo: client.phoneNo,
             });
 
-            await newClient.save();  // Save new client
-            return newClient._id;    // Return new client's ID
+            await newClient.save(); // Save new client
+            return newClient._id; // Return new client's ID
           }
         })
       );
@@ -41,7 +64,11 @@ exports.createMeeting = async (req, res) => {
       return res.status(400).json({ message: "Invalid or empty client array" });
     }
 
-    if (forLead && !await Lead.findOne({ _id: forLead, company: req.user.company })) return res.status(400).json({ message: "Lead not found." })
+    if (
+      forLead &&
+      !(await Lead.findOne({ _id: forLead, company: req.user.company }))
+    )
+      return res.status(400).json({ message: "Lead not found." });
 
     const meeting = new Meeting({
       title,
@@ -73,7 +100,9 @@ exports.createMeeting = async (req, res) => {
     res.status(201).json({ message: "Meeting created successfully", meeting });
   } catch (error) {
     console.error("Error creating meeting:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -81,27 +110,50 @@ exports.createMeeting = async (req, res) => {
 exports.updateMeeting = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, addressAndLink, participants, scheduledTime, agenda, addClient } = req.body;
+    const {
+      title,
+      addressAndLink,
+      participants,
+      scheduledTime,
+      forLead,
+      agenda,
+      addClient,
+    } = req.body;
 
-    if (!title || !participants || !scheduledTime || !agenda || !addressAndLink) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+    if (
+      !title ||
+      !participants ||
+      !scheduledTime ||
+      !agenda ||
+      !addressAndLink
+    ) {
+      return res
+        .status(400)
+        .json({ message: "All required fields must be filled" });
     }
 
     if (forLead) {
-      if (!await Lead.findOne({ _id: forLead, company: req.user.company })) return res.status(400).json({ message: "Lead not found." })
+      if (!(await Lead.findOne({ _id: forLead, company: req.user.company })))
+        return res.status(400).json({ message: "Lead not found." });
     }
 
-    const meeting = await Meeting.findOne({ _id: id, company: req.user.company });
+    const meeting = await Meeting.findOne({
+      _id: id,
+      company: req.user.company,
+    });
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
 
-    let addParticipants = []
+    let addParticipants = [];
 
     if (Array.isArray(addClient) && addClient.length > 0) {
       addParticipants = await Promise.all(
         addClient.map(async (client) => {
-          let existingClient = await Contacts.findOne({ company: req.user.company, email: client.email });
+          let existingClient = await Contacts.findOne({
+            company: req.user.company,
+            email: client.email,
+          });
 
           if (existingClient) {
             return existingClient._id; // If exists, return ID
@@ -109,11 +161,12 @@ exports.updateMeeting = async (req, res) => {
             let newClient = new Contacts({
               company: req.user.company,
               name: client.name,
-              email: client.email
+              email: client.email,
+              phoneNo: client.phoneNo,
             });
 
-            await newClient.save();  // Save new client
-            return newClient._id;    // Return new client's ID
+            await newClient.save(); // Save new client
+            return newClient._id; // Return new client's ID
           }
         })
       );
@@ -145,7 +198,9 @@ exports.updateMeeting = async (req, res) => {
     res.status(200).json({ message: "Meeting updated successfully", meeting });
   } catch (error) {
     console.error("Error updating meeting:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -159,7 +214,10 @@ exports.changeMeetingStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const meeting = await Meeting.findOne({ _id: id, company: req.user.company });
+    const meeting = await Meeting.findOne({
+      _id: id,
+      company: req.user.company,
+    });
     if (!meeting) {
       return res.status(404).json({ message: "Meeting not found" });
     }
@@ -171,7 +229,9 @@ exports.changeMeetingStatus = async (req, res) => {
     res.status(200).json({ message: "Meeting status updated", meeting });
   } catch (error) {
     console.error("Error updating meeting status:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -184,19 +244,28 @@ exports.getMeetings = async (req, res) => {
     if (participants) filters.participants = { $in: participants };
     if (status) filters.meetingStatus = status;
     if (startDate && endDate) {
-      filters.scheduledTime = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      filters.scheduledTime = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
     }
 
-    const meetings = await Meeting.find(filters).populate("participants forLead addParticipants company");
+    const meetings = await Meeting.find(filters).populate(
+      "participants forLead addParticipants company"
+    );
 
     if (meetings.length === 0) {
-      return res.status(404).json({ message: "No meetings found with the provided filters" });
+      return res
+        .status(404)
+        .json({ message: "No meetings found with the provided filters" });
     }
 
     res.status(200).json({ meetings });
   } catch (error) {
     console.error("Error fetching meetings:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
 
@@ -211,31 +280,35 @@ const getNextFollowUpSequence = async (leadId) => {
   }
 };
 
-
 exports.sendMeetingReminder = async (req, res) => {
   try {
     const { meetingId } = req.params;
-    if (!meetingId) return res.status(400).json({ message: "Meeting ID is required" });
+    if (!meetingId)
+      return res.status(400).json({ message: "Meeting ID is required" });
 
-    const meeting = await Meeting.findOne({ _id: meetingId, company: req.user.company })
-      .populate({
-        path: "participants",
-        populate: { path: "user", select: "email name" },
-      })
+    const meeting = await Meeting.findOne({
+      _id: meetingId,
+      company: req.user.company,
+    })
+      .populate("participants")
       .populate("addParticipants", "email name");
 
     if (!meeting) return res.status(404).json({ message: "Meeting not found" });
 
     if (meeting.meetingStatus !== "Pending") {
-      return res.status(400).json({ message: "Only pending meetings can have reminders sent" });
+      return res
+        .status(400)
+        .json({ message: "Only pending meetings can have reminders sent" });
     }
 
-    const participantEmails = meeting.participants.map(p => p.email);
-    const additionalEmails = meeting.addParticipants.map(c => c.email);
+    const participantEmails = meeting.participants.map((p) => p.email);
+    const additionalEmails = meeting.addParticipants.map((c) => c.email);
     const allEmails = [...new Set([...participantEmails, ...additionalEmails])];
 
     if (allEmails.length === 0) {
-      return res.status(400).json({ message: "No participants found to send reminders" });
+      return res
+        .status(400)
+        .json({ message: "No participants found to send reminders" });
     }
 
     // Construct email content
@@ -243,7 +316,9 @@ exports.sendMeetingReminder = async (req, res) => {
     const message = `
           <h3>Meeting Reminder</h3>
           <p><strong>Title:</strong> ${meeting.title}</p>
-          <p><strong>Scheduled Time:</strong> ${new Date(meeting.scheduledTime).toLocaleString()}</p>
+          <p><strong>Scheduled Time:</strong> ${new Date(
+            meeting.scheduledTime
+          ).toLocaleString()}</p>
           <p><strong>Agenda:</strong> ${meeting.agenda}</p>
           <p>Please be prepared for the meeting.</p>
       `;
@@ -255,12 +330,14 @@ exports.sendMeetingReminder = async (req, res) => {
 
     // Start chunked response
     res.setHeader("Content-Type", "application/json");
-    res.write(`{"message": "Sending meeting reminders", "totalEmails": ${allEmails.length}, "updates": [`); // Start JSON array
+    res.write(
+      `{"message": "Sending meeting reminders", "totalEmails": ${allEmails.length}, "updates": [`
+    ); // Start JSON array
 
     for (let i = 0; i < allEmails.length; i += chunkSize) {
       const emailChunk = allEmails.slice(i, i + chunkSize);
       const results = await Promise.all(
-        emailChunk.map(email => sendEmail(email, subject, message))
+        emailChunk.map((email) => sendEmail(email, subject, message))
       );
 
       results.forEach((success, index) => {
@@ -269,19 +346,28 @@ exports.sendMeetingReminder = async (req, res) => {
 
         if (success) {
           sentCount++;
-          res.write(JSON.stringify({ email, status: "sent", remainingEmails }) + ","); // Stream response
+          res.write(
+            JSON.stringify({ email, status: "sent", remainingEmails }) + ","
+          ); // Stream response
         } else {
           failedEmails.push(email);
-          res.write(JSON.stringify({ email, status: "failed", remainingEmails }) + ","); // Stream response
+          res.write(
+            JSON.stringify({ email, status: "failed", remainingEmails }) + ","
+          ); // Stream response
         }
       });
     }
 
-    res.write(`], "sentCount": ${sentCount}, "failedCount": ${failedEmails.length}, "failedEmails": ${JSON.stringify(failedEmails)}}`); // Close JSON
+    res.write(
+      `], "sentCount": ${sentCount}, "failedCount": ${
+        failedEmails.length
+      }, "failedEmails": ${JSON.stringify(failedEmails)}}`
+    ); // Close JSON
     res.end(); // End response
-
   } catch (error) {
     console.error("Error sending meeting reminder:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
