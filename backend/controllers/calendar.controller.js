@@ -42,7 +42,7 @@ exports.fetchDataByDateRange = async (req, res) => {
 
         let data = {};
 
-        if(user.role === "Employee"){
+        if (user.role === "Employee") {
             data.yourWork = await TaskAssigned.find({
                 dueDate: { $gte: startDate, $lte: endDate },
                 company,
@@ -59,13 +59,11 @@ exports.fetchDataByDateRange = async (req, res) => {
         }
 
         // Fetch Todos if the employee has read permission or user is CompanyAdmin
-        if (isCompanyAdmin || role.permissions.todos.read) {
-            data.todos = await Todo.find({
-                dueDate: { $gte: startDate, $lte: endDate },
-                company,
-                user: req.user._id,
-            });
-        }
+        data.todos = await Todo.find({
+            dueDate: { $gte: startDate, $lte: endDate },
+            company,
+            user: req.user._id,
+        });
 
         // Fetch Meetings if the employee has read permission or user is CompanyAdmin
         if (isCompanyAdmin || role.permissions.meeting.read) {

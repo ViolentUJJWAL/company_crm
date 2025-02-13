@@ -19,7 +19,7 @@ router.use("/lead-for", authMiddleware, checkActiveStatus, require("./companyRou
 router.use("/lead-source", authMiddleware, checkActiveStatus, require("./companyRoutes/leadSource.routes") )
 
 // leadStatusLabel
-router.use("/lead-status", authMiddleware, checkActiveStatus, require("./companyRoutes/leadStatusLabel.routes") )
+// router.use("/lead-status", authMiddleware, checkActiveStatus, require("./companyRoutes/leadStatusLabel.routes") )
 
 router.get("/", getCompanies)
 
