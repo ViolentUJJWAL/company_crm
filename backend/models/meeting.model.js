@@ -7,6 +7,9 @@ const meetingSchema = new mongoose.Schema(
       required: [true, 'Meeting title is required'],
       trim: true,
     },
+    addressAndLink: {
+      type: String,
+    },
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,
