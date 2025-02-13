@@ -1,6 +1,4 @@
 const Company = require("../models/company.model");
-const Employee = require("../models/employee.model");
-const Role = require("../models/role.model");
 
 // ✅ Fetch All Verified & Active Companies
 exports.getCompanies = async (req, res) => {

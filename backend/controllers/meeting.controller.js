@@ -1,3 +1,4 @@
+const Contacts = require("../models/contact.model");
 const Lead = require("../models/lead.model");
 const Meeting = require("../models/meeting.model");
 
@@ -5,9 +6,9 @@ const Meeting = require("../models/meeting.model");
 // Create Meeting
 exports.createMeeting = async (req, res) => {
   try {
-    const { title, participants, forLead, scheduledTime, agenda, addParticipants } = req.body;
+    const { title, addressAndLink, participants, forLead, scheduledTime, agenda, addClient } = req.body;
 
-    if (!title || !participants || !scheduledTime || !agenda) {
+    if (!title || !participants || !scheduledTime || !agenda || !addressAndLink) {
       return res.status(400).json({ message: "All required fields must be filled" });
     }
 
@@ -15,12 +16,38 @@ exports.createMeeting = async (req, res) => {
       return res.status(400).json({ message: "At least one employee must be added to the meeting" });
     }
 
-    if (!await Lead.findOne({ _id: forLead, company: req.user.company })) return res.status(400).json({ message: "Lead not found." })
+    const addParticipants = []
+
+    if (Array.isArray(addClient) && addClient.length > 0) {
+      addParticipants = await Promise.all(
+        addClient.map(async (client) => {
+          let existingClient = await Contacts.findOne({ company: req.user.company, email: client.email });
+
+          if (existingClient) {
+            return existingClient._id; // If exists, return ID
+          } else {
+            let newClient = new Contacts({
+              company: req.user.company,
+              name: client.name,
+              email: client.email
+            });
+
+            await newClient.save();  // Save new client
+            return newClient._id;    // Return new client's ID
+          }
+        })
+      );
+    } else {
+      return res.status(400).json({ message: "Invalid or empty client array" });
+    }
+
+    if (forLead && !await Lead.findOne({ _id: forLead, company: req.user.company })) return res.status(400).json({ message: "Lead not found." })
 
     const meeting = new Meeting({
       title,
       participants,
       forLead,
+      addressAndLink,
       scheduledTime,
       agenda,
       addParticipants,
@@ -54,9 +81,9 @@ exports.createMeeting = async (req, res) => {
 exports.updateMeeting = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, participants, forLead, scheduledTime, agenda, addParticipants } = req.body;
+    const { title, addressAndLink, participants, scheduledTime, agenda, addClient } = req.body;
 
-    if (!title || !participants || !scheduledTime || !agenda) {
+    if (!title || !participants || !scheduledTime || !agenda || !addressAndLink) {
       return res.status(400).json({ message: "All required fields must be filled" });
     }
 
@@ -69,12 +96,37 @@ exports.updateMeeting = async (req, res) => {
       return res.status(404).json({ message: "Meeting not found" });
     }
 
+    let addParticipants = []
+
+    if (Array.isArray(addClient) && addClient.length > 0) {
+      addParticipants = await Promise.all(
+        addClient.map(async (client) => {
+          let existingClient = await Contacts.findOne({ company: req.user.company, email: client.email });
+
+          if (existingClient) {
+            return existingClient._id; // If exists, return ID
+          } else {
+            let newClient = new Contacts({
+              company: req.user.company,
+              name: client.name,
+              email: client.email
+            });
+
+            await newClient.save();  // Save new client
+            return newClient._id;    // Return new client's ID
+          }
+        })
+      );
+    } else {
+      return res.status(400).json({ message: "Invalid or empty client array" });
+    }
+
     meeting.title = title;
     meeting.participants = participants;
-    meeting.forLead = forLead;
     meeting.scheduledTime = scheduledTime;
     meeting.agenda = agenda;
     meeting.addParticipants = addParticipants;
+    meeting.addressAndLink = addressAndLink;
 
     await meeting.save();
 
