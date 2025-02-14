@@ -109,11 +109,12 @@ const Lead = () => {
   const handleAddFollowUp = async (leadId, data) => {
     try {
       const response = await addFollowUp(leadId, data);
-      fetchLeads();
-      if (viewLead && viewLead._id === leadId) {
-        const updatedLeadResponse = await getLeadById(leadId);
-        setViewLead(updatedLeadResponse.data);
-      }
+        fetchLeads();
+        if (viewLead && viewLead._id === leadId) {
+          const updatedLeadResponse = await getLeadById(leadId);
+          setViewLead(updatedLeadResponse.data);
+        }
+      
     } catch (error) {
       console.error("Error adding follow-up:", error);
     }
