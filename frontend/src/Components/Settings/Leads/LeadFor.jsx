@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
 import LeadForServices from "../../../services/LeadForServices";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+// import "react-toastify/dist/ReactToastify.css";
 
 export default function LeadPage() {
   const [leads, setLeads] = useState([]);
@@ -22,7 +22,7 @@ export default function LeadPage() {
       const data = await LeadForServices.getAllLeadFors();
       setLeads(data.data);
     } catch (error) {
-      console.error(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -50,7 +50,7 @@ export default function LeadPage() {
       fetchAllLeads();
       handleClose();
     } catch (error) {
-      console.error("Failed to add/update lead:", error.message);
+      toast.error("Failed to add/update lead:", error.message);
       toast.error("Failed to update lead!");
     }
   };
@@ -60,7 +60,7 @@ export default function LeadPage() {
       await LeadForServices.toggleActiveLeadFor(leadId);
       fetchAllLeads();
     } catch (error) {
-      console.error("Failed to toggle status:", error.message);
+      toast.error("Failed to toggle status:", error.message);
     }
   };
 

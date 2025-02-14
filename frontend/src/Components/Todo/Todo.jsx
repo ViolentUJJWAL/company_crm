@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { todoServices } from "../../services/todoServices";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 
 const Todo = () => {
   const [todos, setTodos] = useState([]);
@@ -78,6 +78,9 @@ const Todo = () => {
 
   const DateCarousel = () => {
     const [dateTodos, setDateTodos] = useState({});
+    const [todo, setTodo] = useState({});
+    const [incompleteTodos, setIncompleteTodos] = useState({});
+
 
     const getDates = useMemo(() => {
       const dates = [];
@@ -102,6 +105,7 @@ const Todo = () => {
     const fetchTodosForDates = async () => {
       const dates = getDates;
       let todosData = {};
+      let incompleteData = {};
 
       await Promise.all(
         dates.map(async (date) => {
@@ -110,15 +114,22 @@ const Todo = () => {
             const response = await todoServices.getTodos(
               `startDate=${formattedDate}&endDate=${formattedDate}`
             );
-            todosData[formattedDate] = response.data.length;
+            const todos = response.data;
+            todosData[formattedDate] = todos.length;
+  
+            // Count only incomplete todos
+            const incompleteCount = todos.filter(todo => !todo.conclusion).length;
+            incompleteData[formattedDate] = incompleteCount;            setTodo(response.data)
           } catch (error) {
             console.error(`Error fetching todos for ${formattedDate}`, error);
             todosData[formattedDate] = 0;
+            incompleteData[formattedDate] = 0;
           }
         })
       );
       console.log(todosData);
       setDateTodos(todosData);
+      setIncompleteTodos(incompleteData);
     };
 
     return (
@@ -138,6 +149,7 @@ const Todo = () => {
             const formattedDate = date.toISOString().split("T")[0];
             const todoCount = getTodoCountForDate(date);
             const hasIncomplete = hasIncompleteTodos(date);
+            const incompleteCount = incompleteTodos[formattedDate] || 0;
 
             return (
               <button
@@ -162,30 +174,29 @@ const Todo = () => {
                     })}
                   </div>
 
-                  {/* Todo Count Circle */}
                   {todoCount > 0 && (
                     <div
-                      className={`absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
-                      ${
-                        date.toDateString() === selectedDate.toDateString()
-                          ? "bg-red-500 text-white"
-                          : "bg-blue-500 text-white"
-                      }`}
+                      className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-green-400"
                     >
-                      {todoCount}
+                      <p className=" cursor-pointer peer">{todoCount}</p>
+                      <p className="w-[100px] p-1 bg-gray-300 z-1 absolute left-4 top-4 rounded-2xl invisible peer-hover:opacity-100 peer-hover:visible transition-all">Total todo</p>
+
                     </div>
                   )}
-
-                  {/* Todos Count */}
-                  <div
-                    className={`text-xs mt-1 font-medium
-                    ${
-                      date.toDateString() === selectedDate.toDateString()
-                        ? "text-blue-100"
-                        : "text-gray-500"
-                    }`}
-                  ></div>
+  
+                  {/* Red Circle - Incomplete Todos */}
+                  {incompleteCount > 0 && (
+                    <div
+                      className="absolute bottom-0 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-red-300"
+                    >
+                      <p className=" cursor-pointer peer">{incompleteCount}</p>
+                      <p className="w-[100px] p-1 bg-gray-300 z-1 absolute left-4 -top-4 rounded-2xl invisible peer-hover:opacity-100 peer-hover:visible transition-all">incomplete todo</p>
+                    </div>
+                  )}
                 </div>
+
+                
+                
               </button>
             );
           })}
@@ -226,11 +237,17 @@ const Todo = () => {
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
                   Task Details
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 w-1/4">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                  Priority
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 w-1/5">
                   Conclusion
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 w-1/4">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 w-1/5">
                   Remark
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 w-1/5">
+                  Action
                 </th>
               </tr>
             </thead>
@@ -246,7 +263,18 @@ const Todo = () => {
                         <span className="font-medium text-gray-900">
                           {todo.title}
                         </span>
-                        <span
+                        
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {todo.description}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        Due: {new Date(todo.dueDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                  <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${
                             todo.priority === "High"
                               ? "bg-red-100 text-red-700"
@@ -257,14 +285,6 @@ const Todo = () => {
                         >
                           {todo.priority}
                         </span>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {todo.description}
-                      </p>
-                      <span className="text-xs text-gray-500">
-                        Due: {new Date(todo.dueDate).toLocaleDateString()}
-                      </span>
-                    </div>
                   </td>
                   <td className="px-6 py-4">
                     {editingTodoId === todo._id && isAddingConclusion ? (
@@ -298,8 +318,8 @@ const Todo = () => {
                     ) : (
                       <div>
                         {todo.conclusion ? (
-                          <p className="text-sm text-gray-600">
-                            {todo.conclusion}
+                          <p className="text-sm text-gray-600 flex gap-2">
+                            {todo.conclusion} <Pencil size={18} />
                           </p>
                         ) : (
                           <button
@@ -347,7 +367,7 @@ const Todo = () => {
                     ) : (
                       <div>
                         {todo.remark ? (
-                          <p className="text-sm text-gray-600">{todo.remark}</p>
+                          <p className="text-sm text-gray-600 flex gap-2">{todo.remark}<Pencil size={18}/></p>
                         ) : (
                           <button
                             onClick={() => {
@@ -362,6 +382,8 @@ const Todo = () => {
                       </div>
                     )}
                   </td>
+                  <td className="px-6 py-4">
+                    <Pencil size={18} /></td>
                 </tr>
               ))}
               {todos.length === 0 && (

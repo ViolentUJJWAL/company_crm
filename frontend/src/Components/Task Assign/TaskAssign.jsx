@@ -79,7 +79,7 @@ const TaskTable = ({ tasks, onEdit }) => {
         </thead>
         <tbody>
           {tasks.map((task) => (
-            <tr key={task._id} className="border-b hover:bg-gray-50">
+            <tr key={task._id} className="border-b hover:bg-gray-50 group relative" >
               <td className="p-3 text-sm text-gray-700">{task.title}</td>
               <td className="p-3 text-sm text-gray-700">{task.description}</td>
               <td className="p-3 text-sm text-gray-700">
@@ -125,6 +125,13 @@ const TaskTable = ({ tasks, onEdit }) => {
                   </button>
                 )}
               </td>
+              {task.conclusion && (
+<div className=" min-w-[150px] absolute right-[50%] top-[-100%] px-2 bg-gray-200 rounded-xl shadow-lg hidden group-hover:block">
+            <p className=" font-bold text-gray-800">conclusion:</p>
+            {task.conclusion}
+          </div>
+          
+        )}
             </tr>
           ))}
         </tbody>
