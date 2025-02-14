@@ -1,8 +1,9 @@
 import api from "./api";
 
-const handleRequest = async (request) => {
+export const createLead = async (leadData) => {
   try {
-    const response = await request;
+    console.log("leadData", leadData);
+    const response = await api.post("/lead/create", leadData);
     return response.data;
   } catch (error) {
     console.error("API Error:", error.response?.data || error.message);
@@ -10,32 +11,68 @@ const handleRequest = async (request) => {
   }
 };
 
-export const createLead = async (leadData) => {
-  return handleRequest(api.post("/lead/create", leadData));
-};
-
 export const updateLead = async (id, leadData) => {
-  return handleRequest(api.put(`/lead/update/${id}`, leadData));
+  try {
+    const response = await api.put(`/lead/update/${id}`, leadData);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Something went wrong!" };
+  }
 };
 
 export const changeLeadStatus = async (id, status) => {
-  return handleRequest(api.patch(`/lead/status/${id}`, { status }));
+  try {
+    const response = await api.patch(`/lead/status/${id}`, { status });
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Something went wrong!" };
+  }
 };
 
 export const getLeads = async (filters) => {
-  return handleRequest(api.get("/lead/list", { params: filters }));
+  try {
+    const response = await api.get("/lead/list", { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Something went wrong!" };
+  }
 };
 
 export const getLeadById = async (id) => {
-  return handleRequest(api.get(`/lead/${id}`));
+  try {
+    console.log("id", id);
+    const response = await api.get(`/lead/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Something went wrong!" };
+  }
 };
 
 export const addFollowUp = async (id, conclusion) => {
-  return handleRequest(api.post(`/lead/follow-up/add/${id}`, { conclusion }));
+  try {
+    const response = await api.post(`/lead/follow-up/add/${id}`, {
+      conclusion,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Something went wrong!" };
+  }
 };
 
 export const updateFollowUp = async (id, followUpId, conclusion) => {
-  return handleRequest(
-    api.put(`/lead/follow-up/update/${id}/${followUpId}`, { conclusion })
-  );
+  try {
+    const response = await api.put(
+      `/lead/follow-up/update/${id}/${followUpId}`,
+      { conclusion }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    throw error.response?.data || { message: "Something went wrong!" };
+  }
 };

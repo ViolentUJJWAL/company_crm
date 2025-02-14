@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { getLeads } from "../../services/leadServices";
+import {
+  addFollowUp,
+  changeLeadStatus,
+  createLead,
+  getLeadById,
+  getLeads,
+  updateLead,
+} from "../../services/leadServices";
 import LeadCard from "./LeadCard";
 import LeadDetailsModal from "./LeadDetailsModal";
 import LeadFormModal from "./LeadFormModal";
 
 const Lead = () => {
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [viewLead, setViewLead] = useState(null);
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [leads, setLeads] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [selectedLead, setSelectedLead] = useState(null);
   const [viewMode, setViewMode] = useState("kanban");
   const [filters, setFilters] = useState({
     search: "",
@@ -96,15 +106,28 @@ const Lead = () => {
     return Object.values(statusGroups);
   };
 
+  const handleAddFollowUp = async (leadId, data) => {
+    try {
+      const response = await addFollowUp(leadId, data);
+      fetchLeads();
+      if (viewLead && viewLead._id === leadId) {
+        const updatedLeadResponse = await getLeadById(leadId);
+        setViewLead(updatedLeadResponse.data);
+      }
+    } catch (error) {
+      console.error("Error adding follow-up:", error);
+    }
+  };
+
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
 
     try {
       const { draggableId, destination } = result;
-      await leadServices.changeLeadStatus(draggableId, destination.droppableId);
+      await changeLeadStatus(draggableId, destination.droppableId);
 
       // Refresh leads after status change
-      const response = await leadServices.getLeads(filters);
+      const response = await getLeads(filters);
       const groupedLeads = groupLeadsByStatus(response.data);
       setLeads(groupedLeads);
     } catch (error) {
@@ -144,14 +167,18 @@ const Lead = () => {
                         >
                           <LeadCard
                             lead={lead}
-                            onLeadClick={() => setSelectedLead(lead)}
+                            onLeadClick={() => setViewLead(lead)}
                             onEditClick={(lead) => {
                               setSelectedLead(lead);
                               setShowForm(true);
                             }}
                             onFollowUpClick={(lead) => {
+                              setViewLead(lead);
+                              setIsFollowUpModalOpen(true);
+                            }}
+                            onAssignClick={(lead) => {
                               setSelectedLead(lead);
-                              // You can optionally set the active tab to 'followups'
+                              setIsAssignModalOpen(true);
                             }}
                           />
                         </div>
@@ -215,12 +242,23 @@ const Lead = () => {
                   {new Date(lead.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-2">
-                  <button
-                    onClick={() => setSelectedLead(lead)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    View Details
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setViewLead(lead)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedLead(lead);
+                        setShowForm(true);
+                      }}
+                      className="text-green-600 hover:text-green-800"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -294,17 +332,39 @@ const Lead = () => {
         <LeadFormModal
           show={showForm}
           onClose={() => setShowForm(false)}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmitForm}
+          onSubmit={async (formData) => {
+            try {
+              const response = await createLead(formData);
+              fetchLeads();
+            } catch (error) {
+              console.log("error", error);
+            }
+          }}
         />
       )}
 
       {selectedLead && (
+        <LeadFormModal
+          show={showForm}
+          onClose={() => setShowForm(false)}
+          isEdit={true}
+          leadId={selectedLead?._id}
+          onSubmit={async (formData, leadId) => {
+            try {
+              const response = await updateLead(leadId, formData);
+              fetchLeads();
+            } catch (error) {
+              console.log("error", error);
+            }
+          }}
+        />
+      )}
+
+      {viewLead && (
         <LeadDetailsModal
-          lead={selectedLead}
-          onClose={() => setSelectedLead(null)}
-          onUpdate={handleUpdateLead}
+          lead={viewLead}
+          onClose={() => setViewLead(null)}
+          onAddFollowUp={handleAddFollowUp}
         />
       )}
     </div>

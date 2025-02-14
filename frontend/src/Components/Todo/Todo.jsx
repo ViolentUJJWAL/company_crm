@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Todo = () => {
   const [todos, setTodos] = useState([]);
-  // const [dateTodos, setDateTodos] = useState({});
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [conclusion, setConclusion] = useState("");
@@ -110,6 +109,7 @@ const Todo = () => {
             const response = await todoServices.getTodos(
               `startDate=${formattedDate}&endDate=${formattedDate}`
             );
+            console.log("response", response);
             todosData[formattedDate] = response.data.length;
           } catch (error) {
             console.error(`Error fetching todos for ${formattedDate}`, error);

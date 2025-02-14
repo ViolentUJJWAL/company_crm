@@ -1,25 +1,83 @@
 import React, { useState, useEffect } from "react";
-// import { LeadForServices } from "../../services/leadForServices";
-// import getVerifiedEmployees from "../../services/employeeServices";
-const LeadFormModal = ({ show, onClose, formData, setFormData, onSubmit }) => {
+import axios from "axios";
+import LeadForServices from "../../services/leadForServices";
+import LeadSourceService from "../../services/leadSourceService";
+import { getVerifiedEmployees } from "../../services/employeeServices";
+import { getLeadById } from "../../services/leadServices";
+
+const LeadFormModal = ({
+  show,
+  onClose,
+  isEdit = false,
+  leadId = null,
+  onSubmit,
+}) => {
   const [leadFors, setLeadFors] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    leadForId: "",
+    leadSourceId: "",
+    contact: {
+      name: "",
+      email: "",
+      phoneNo: "",
+    },
+    reference: {
+      name: "",
+      email: "",
+      phoneNo: "",
+    },
+    status: isEdit ? "" : "New",
+    remark: "",
+    assignedTo: null,
+  });
 
+  // Fetch initial data and populate form if editing
   useEffect(() => {
     const fetchFormData = async () => {
       try {
         setLoading(true);
-        const [leadForsRes, leadSourcesRes, employeesRes] = await Promise.all([
-          // LeadForServices.getActiveLeadFors(),
-          // LeadSourceService.getActiveLeadSources(),
-          // getVerifiedEmployees(),
-        ]);
 
-        setLeadFors(leadForsRes.data);
-        setLeadSources(leadSourcesRes.data);
-        setEmployees(employeesRes.data);
+        // Fetch required data
+        const [leadForsRes, leadSourcesRes, employeesRes] = await Promise.all([
+          LeadForServices.getActiveLeadFors(),
+          LeadSourceService.getActiveLeadSources(),
+          getVerifiedEmployees(),
+        ]);
+        // console.log("leadForsRes", leadForsRes);
+        // console.log("leadSourcesRes", leadSourcesRes);
+        // console.log("employeesRes", employeesRes);
+
+        setLeadFors(leadForsRes.data || []);
+        setLeadSources(leadSourcesRes.data || []);
+        setEmployees(employeesRes.data || []);
+
+        // If editing, fetch lead data
+        if (isEdit && leadId) {
+          const leadRes = await getLeadById(leadId);
+          console.log("leadRes", leadRes);
+          const lead = leadRes.data;
+
+          setFormData({
+            leadForId: lead.for._id,
+            leadSourceId: lead.source._id,
+            contact: {
+              name: lead.contact.name,
+              email: lead.contact.email,
+              phoneNo: lead.contact.phoneNo,
+            },
+            reference: lead.reference || {
+              name: "",
+              email: "",
+              phoneNo: "",
+            },
+            status: lead.status,
+            remark: lead.remark || "",
+            assignedTo: lead.assignedTo ? lead.assignedTo._id : null,
+          });
+        }
       } catch (error) {
         console.error("Error fetching form data:", error);
       } finally {
@@ -27,8 +85,25 @@ const LeadFormModal = ({ show, onClose, formData, setFormData, onSubmit }) => {
       }
     };
 
-    fetchFormData();
-  }, []);
+    if (show) {
+      fetchFormData();
+    }
+  }, [show, isEdit, leadId]);
+
+  // Reset form when closed
+  useEffect(() => {
+    if (!show) {
+      setFormData({
+        leadForId: "",
+        leadSourceId: "",
+        contact: { name: "", email: "", phoneNo: "" },
+        reference: { name: "", email: "", phoneNo: "" },
+        status: "New",
+        remark: "",
+        assignedTo: null,
+      });
+    }
+  }, [show]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -48,15 +123,28 @@ const LeadFormModal = ({ show, onClose, formData, setFormData, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSubmit(formData);
-    onClose();
+
+    try {
+      if (isEdit) {
+        await onSubmit(formData, leadId);
+      } else {
+        await onSubmit(formData);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
+  if (!show) return null;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-gray-500/40 bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         <div className="px-6 py-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Add New Lead</h2>
+          <h2 className="text-lg font-semibold">
+            {isEdit ? "Update Lead" : "Add New Lead"}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -155,6 +243,7 @@ const LeadFormModal = ({ show, onClose, formData, setFormData, onSubmit }) => {
                       className="w-full p-2 text-sm border rounded-md"
                       required
                       pattern="\d{10,15}"
+                      title="Phone number must be between 10 to 15 digits"
                     />
                   </div>
                 </div>
@@ -194,30 +283,49 @@ const LeadFormModal = ({ show, onClose, formData, setFormData, onSubmit }) => {
                       onChange={handleInputChange}
                       className="w-full p-2 text-sm border rounded-md"
                       pattern="\d{10,15}"
+                      title="Phone number must be between 10 to 15 digits"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {isEdit && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Assign To
+                    Status
                   </label>
                   <select
-                    name="assignedTo"
-                    value={formData.assignedTo}
+                    name="status"
+                    value={formData.status}
                     onChange={handleInputChange}
                     className="w-full p-2 text-sm border rounded-md"
                   >
-                    <option value="">Select Employee</option>
-                    {employees.map((employee) => (
-                      <option key={employee._id} value={employee._id}>
-                        {employee.user.name}
-                      </option>
-                    ))}
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Qualified">Qualified</option>
+                    <option value="Converted">Converted</option>
+                    <option value="Closed">Closed</option>
                   </select>
                 </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assign To
+                </label>
+                <select
+                  name="assignedTo"
+                  value={formData.assignedTo}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm border rounded-md"
+                >
+                  <option value="">Select Employee</option>
+                  {employees.map((employee) => (
+                    <option key={employee._id} value={employee._id}>
+                      {employee.user?.name || employee.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -247,7 +355,7 @@ const LeadFormModal = ({ show, onClose, formData, setFormData, onSubmit }) => {
                 type="submit"
                 className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
-                Create Lead
+                {isEdit ? "Update Lead" : "Create Lead"}
               </button>
             </div>
           </form>
