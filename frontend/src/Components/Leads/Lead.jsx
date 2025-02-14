@@ -68,8 +68,8 @@ const Lead = () => {
       New: {
         title: "New",
         leads: [],
-        color: "bg-blue-50",
-        border: "border-blue-200",
+        color: "bg-blue-100",
+        border: "border-blue-700",
       },
       Contacted: {
         title: "Contacted",

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import taskServices from "../../services/taskServices";
+import { ToastContainer, toast } from "react-toastify";
+
 
 const EmployeeTasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -17,11 +19,12 @@ const EmployeeTasks = () => {
       const data = await taskServices.getMyTasks();
       if (Array.isArray(data.tasks)) {
         setTasks(data.tasks);
+        toast.success("fetch data sucessfully")
       } else {
-        console.warn("⚠ Invalid Response:", data);
+        toast.warn("⚠ Invalid Response:", data);
       }
     } catch (error) {
-      console.error("❌ Error fetching tasks:", error);
+      toast.error("❌ Error fetching tasks:", error);
     }
   };
 
@@ -43,7 +46,7 @@ const EmployeeTasks = () => {
 
   const openModal = (task) => {
     if (!task || !task._id) {
-      console.error("❌ Task ID is missing!", task);
+      toast.error("❌ Task ID is missing!", task);
       return;
     }
     setModalTask({ ...task, id: task._id });
@@ -58,7 +61,7 @@ const EmployeeTasks = () => {
 
   const handleSubmit = async () => {
     if (!modalTask || !modalTask.id) {
-      console.error("❌ Task ID is undefined!");
+      toast.error("❌ Task ID is undefined!");
       return;
     }
 
@@ -67,9 +70,10 @@ const EmployeeTasks = () => {
     try {
       await taskServices.addConclusion(modalTask.id, conclusion);
       await fetchTasks(); // Refresh tasks after submission
+
       closeModal();
     } catch (error) {
-      console.error("❌ Error updating conclusion:", error);
+      toast.error("❌ Error updating conclusion:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -77,6 +81,8 @@ const EmployeeTasks = () => {
 
   return (
     <div>
+                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Task Management

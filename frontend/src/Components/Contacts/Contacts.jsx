@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import contactServices from "../../services/contactServices";
+import { ToastContainer, toast } from "react-toastify";
+
 import {
   Search,
   Plus,
@@ -42,7 +44,7 @@ const Contacts = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+  // const [alert, setAlert] = useState({ show: false, message: "", type: "" });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -55,10 +57,10 @@ const Contacts = () => {
     },
   });
 
-  const showAlert = (message, type) => {
-    setAlert({ show: true, message, type });
-    setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
-  };
+  // const showAlert = (message, type) => {
+  //   setAlert({ show: true, message, type });
+  //   setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
+  // };
 
   const fetchContacts = async () => {
     try {
@@ -72,7 +74,7 @@ const Contacts = () => {
       setContacts(response.contacts);
       setTotalPages(response.totalPages);
     } catch (error) {
-      showAlert("Failed to fetch contacts", "error");
+      toast.error("Failed to fetch contacts", "error");
     } finally {
       setLoading(false);
     }
@@ -87,27 +89,27 @@ const Contacts = () => {
     try {
       if (selectedContact) {
         await contactServices.updateContact(selectedContact._id, formData);
-        showAlert("Contact updated successfully", "success");
+        toast.success("Contact updated successfully", "success");
       } else {
         await contactServices.addContact(formData);
-        showAlert("Contact added successfully", "success");
+        toast.success("Contact added successfully", "success");
       }
       setModalOpen(false);
       setSelectedContact(null);
       resetForm();
       fetchContacts();
     } catch (error) {
-      showAlert("Error saving contact", "error");
+      toast.error("Error saving contact", "error");
     }
   };
 
   const handleToggleClient = async (id) => {
     try {
       await contactServices.toggleClientStatus(id);
-      showAlert("Status updated successfully", "success");
+      toast.success("Status updated successfully", "success");
       fetchContacts();
     } catch (error) {
-      showAlert("Error updating status", "error");
+      toast.error("Error updating status", "error");
     }
   };
 
@@ -151,8 +153,10 @@ const Contacts = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
+            <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       {/* Alert */}
-      {alert.show && (
+      {/* {alert.show && (
         <div
           className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
             alert.type === "success"
@@ -162,7 +166,7 @@ const Contacts = () => {
         >
           {alert.message}
         </div>
-      )}
+      )} */}
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8">

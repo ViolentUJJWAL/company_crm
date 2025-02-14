@@ -3,6 +3,8 @@ import {
   getUnverifiedEmployees,
   verifyEmployee,
 } from "../../services/employeeServices";
+import { ToastContainer, toast } from "react-toastify";
+
 
 const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -64,7 +66,7 @@ const EmployeeVerification = () => {
         setEmployees(response.data);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      toast.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -123,7 +125,7 @@ const EmployeeVerification = () => {
 
   const handleVerify = async () => {
     if (!roleName.trim()) {
-      alert("Please enter a role name");
+      toast.error("Please enter a role name");
       return;
     }
 
@@ -135,10 +137,10 @@ const EmployeeVerification = () => {
       );
       setShowModal(false);
       resetForm();
-      alert("Employee verified successfully");
+      toast.success("Employee verified successfully");
     } catch (error) {
       console.error("Verification error:", error);
-      alert("Failed to verify employee");
+      toast.error("Failed to verify employee");
     } finally {
       setVerifying((prev) => ({ ...prev, [selectedEmployee._id]: false }));
     }
@@ -167,6 +169,8 @@ const EmployeeVerification = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+                        <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
           Employee Verification
