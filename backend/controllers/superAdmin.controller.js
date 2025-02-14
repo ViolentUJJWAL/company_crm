@@ -55,7 +55,8 @@ exports.getVerifiedCompanies = (req, res) => fetchCompanies("Verify", res, "No v
 // ✅ Toggle Company `isActive` Status
 exports.toggleCompanyStatus = async (req, res) => {
     try {
-        const { companyId } = req.params;
+        console.log('req.body', req.body)
+        const { companyId } = req.body;
 
         // 🔹 Find company
         const company = await Company.findById(companyId);
@@ -75,6 +76,7 @@ exports.toggleCompanyStatus = async (req, res) => {
         return res.status(500).json({ message: "Server error", error });
     }
 };
+
 // ✅ get all Companies 
 exports.getAllCompanies  = async (req, res) => {
     try {

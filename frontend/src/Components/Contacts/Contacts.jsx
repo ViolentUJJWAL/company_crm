@@ -147,6 +147,8 @@ const Contacts = () => {
     setDetailModalOpen(true);
   };
 
+  console.log(contacts)
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
       {/* Alert */}
@@ -209,7 +211,7 @@ const Contacts = () => {
         </div>
       </div>
 
-      {/* Contacts Grid */}
+      {/* Contacts Table */}
       {loading ? (
         <div className="flex justify-center items-center h-16">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -297,6 +299,7 @@ const Contacts = () => {
         </div>
       )}
 
+      {/* Detail Modal */}
       {detailModalOpen && selectedContact && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
@@ -314,6 +317,7 @@ const Contacts = () => {
               <h2 className="text-3xl font-bold text-gray-800">
                 {selectedContact.name}
               </h2>
+                <img src={selectedContact.businessCard?.url} alt={selectedContact.name} />
               <div className="flex items-center gap-2 mt-2">
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${

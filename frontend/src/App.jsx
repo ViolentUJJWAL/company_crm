@@ -22,6 +22,7 @@ import TaskAssign from "./Components/Task Assign/TaskAssign";
 import EmployeeTasks from "./Components/EmployeeTask/EmployeeTask";
 import Meetings from "./Components/Meetings/Meetings";
 import Contacts from "./Components/Contacts/Contacts";
+import SuperAdminDashboard from "./Components/SuperAdmin/SuperAdminDashboard"
 function App() {
   const [count, setCount] = useState(0);
 
@@ -51,6 +52,7 @@ function App() {
           <Route path="/employee-task" element={<Layout><EmployeeTasks /></Layout>} />
           <Route path="/meetings" element={<Layout><Meetings /></Layout>} />
           <Route path="/contacts" element={<Layout><Contacts /></Layout>} />
+          <Route path="/super-admin-dashboard" element={<Layout><SuperAdminDashboard /></Layout>} />
         </Routes>
       </BrowserRouter>
     </>
