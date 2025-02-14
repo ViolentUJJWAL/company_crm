@@ -211,64 +211,95 @@ const Contacts = () => {
 
       {/* Contacts Grid */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex justify-center items-center h-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {contacts.map((contact) => (
-            <div
-              key={contact._id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => openDetailModal(contact)}
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-full bg-white">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Name
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Email
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Phone
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Type
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {contacts.map((contact) => (
+                <tr
+                  key={contact._id}
+                  onClick={() => openDetailModal(contact)}
+                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
                       {contact.name}
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-1">
-                      {contact.email}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(contact);
-                    }}
-                    className="text-gray-400 hover:text-blue-600 transition-colors"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600 mb-4">
-                  <Phone size={16} />
-                  <span>{contact.phoneNo || "No phone"}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <ToggleSwitch
-                      checked={contact.isClient}
-                      onChange={(e) => {
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="text-sm text-gray-600">{contact.email}</div>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <Phone size={14} />
+                      <span>{contact.phoneNo || "No phone"}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-2"
+                    >
+                      <ToggleSwitch
+                        checked={contact.isClient}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleToggleClient(contact._id);
+                        }}
+                      />
+                      <span className="text-sm text-gray-600">
+                        {contact.isClient ? "Client" : "Contact"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <button
+                      onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleClient(contact._id);
+                        handleEdit(contact);
                       }}
-                    />
-                    <span className="text-sm text-gray-600">
-                      {contact.isClient ? "Client" : "Contact"}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                      className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {contacts.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No contacts found
             </div>
-          ))}
+          )}
         </div>
       )}
 
       {detailModalOpen && selectedContact && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl relative">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => {
                 setDetailModalOpen(false);
@@ -295,6 +326,25 @@ const Contacts = () => {
                 </span>
               </div>
             </div>
+
+            {selectedContact.businessCard?.url && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Business Card
+                </h3>
+                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={selectedContact.businessCard.url}
+                    alt="Business Card"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/placeholder-image.png"; // Fallback image
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">

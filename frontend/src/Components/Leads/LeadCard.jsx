@@ -1,55 +1,108 @@
 import React from "react";
-import { MdDelete, MdEmail } from "react-icons/md";
-import { CiEdit } from "react-icons/ci";
-import { FaWhatsapp, FaLink } from "react-icons/fa6";
-import { IoPersonAdd } from "react-icons/io5";
-import { FiSend } from "react-icons/fi";
+import {
+  Edit2,
+  MessageCircle,
+  Plus,
+  Phone,
+  Mail,
+  User,
+  Calendar,
+  MessageSquare,
+} from "lucide-react";
 
-const LeadCard = ({ lead, onLeadClick }) => (
-  <div
-    onClick={() => onLeadClick(lead)}
-    className="bg-white shadow-md rounded-lg p-4 border border-gray-200 text-left hover:shadow-[0_8px_10px_rgba(0,0,0,0.2)] transition duration-300"
-  >
-    <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700">
-      {lead.label}
-    </span>
-    <h3 className="font-semibold text-lg mt-2">{lead.name}</h3>
-    <p className="text-gray-600">📞 {lead.phone}</p>
-    {lead.reference && (
-      <div className="mt-2 bg-gray-50 p-2 rounded">
-        <p className="text-sm font-medium">Reference:</p>
-        <p className="text-sm text-gray-600">{lead.reference.name}</p>
-        <p className="text-sm text-gray-600">{lead.reference.phoneNo}</p>
+const LeadCard = ({ lead, onLeadClick, onEditClick, onFollowUpClick }) => {
+  const getStatusColor = (status) => {
+    const colors = {
+      New: "bg-blue-100 text-blue-800",
+      Contacted: "bg-yellow-100 text-yellow-800",
+      Qualified: "bg-green-100 text-green-800",
+      Converted: "bg-purple-100 text-purple-800",
+      Closed: "bg-gray-100 text-gray-800",
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 p-4 border border-gray-100">
+      <div className="flex justify-between items-start mb-3">
+        <div
+          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+            lead.status
+          )}`}
+        >
+          {lead.status}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditClick(lead);
+            }}
+            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <Edit2 size={16} className="text-gray-600" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFollowUpClick(lead);
+            }}
+            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            {lead.followUps?.length > 0 ? (
+              <MessageSquare size={16} className="text-blue-600" />
+            ) : (
+              <Plus size={16} className="text-gray-600" />
+            )}
+          </button>
+        </div>
       </div>
-    )}
-    <p className="text-sm text-gray-500">CD: {lead.cd}</p>
-    <p className="text-sm text-gray-500">BY: {lead.by}</p>
-    <p className="text-sm text-gray-500">TO: {lead.to}</p>
-    <p className="text-sm text-gray-500">NFD: {lead.nfd}</p>
-    <div className="mt-2 flex space-x-2 text-gray-500">
-      <span className="cursor-pointer">
-        <MdDelete />
-      </span>
-      <span className="cursor-pointer">
-        <CiEdit />
-      </span>
-      <span className="cursor-pointer">
-        <MdEmail />
-      </span>
-      <span className="cursor-pointer">
-        <FaWhatsapp />
-      </span>
-      <span className="cursor-pointer">
-        <FaLink />
-      </span>
-      <span className="cursor-pointer">
-        <IoPersonAdd />
-      </span>
-      <span className="cursor-pointer">
-        <FiSend />
-      </span>
+
+      <div className="cursor-pointer" onClick={() => onLeadClick(lead)}>
+        <div className="mb-3">
+          <h3 className="font-medium text-gray-900">{lead.contact?.name}</h3>
+          <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+            <Phone size={14} />
+            {lead.contact?.phoneNo}
+          </div>
+          {lead.contact?.email && (
+            <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+              <Mail size={14} />
+              {lead.contact?.email}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2 text-gray-600">
+            <User size={14} />
+            <span>Created by {lead.createdBy?.name}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Calendar size={14} />
+            <span>{formatDate(lead.createdAt)}</span>
+          </div>
+        </div>
+
+        {lead.followUps?.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <MessageCircle size={14} />
+              <span>{lead.followUps.length} Follow-ups</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default LeadCard;

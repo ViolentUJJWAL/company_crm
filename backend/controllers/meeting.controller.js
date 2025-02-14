@@ -250,9 +250,13 @@ exports.getMeetings = async (req, res) => {
       };
     }
 
-    const meetings = await Meeting.find(filters).populate(
-      "participants forLead addParticipants company"
-    );
+    const meetings = await Meeting.find(filters).populate([
+      { path: "participants" },
+      { path: "forLead", select: "title" },
+      { path: "addParticipants" },
+      { path: "company" }
+    ]);
+    
 
     if (meetings.length === 0) {
       return res

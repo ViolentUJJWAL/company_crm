@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { XCircle } from "lucide-react";
 import meetingServices from "../../services/meetingServices";
 import { getVerifiedEmployees } from "../../services/employeeServices";
-import leadServices from "../../services/leadServices";
-
+import { getLeads } from "../../services/leadServices";
 const MeetingForm = ({ meeting, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: meeting?.title || "",
@@ -19,7 +18,7 @@ const MeetingForm = ({ meeting, onClose, onSuccess }) => {
         phoneNo: p.phoneNo || "",
       })) || [],
     addressAndLink: meeting?.addressAndLink || "",
-    lead: meeting?.lead || null,
+    forLead: meeting?.lead || null,
   });
 
   const [employees, setEmployees] = useState([]);
@@ -31,7 +30,7 @@ const MeetingForm = ({ meeting, onClose, onSuccess }) => {
       try {
         const [employeesData, leadsData] = await Promise.all([
           getVerifiedEmployees(),
-          leadServices.getLeads(),
+          getLeads(),
         ]);
         console.log("employeesData", employeesData);
         console.log("leadData", leadsData);
@@ -131,16 +130,16 @@ const MeetingForm = ({ meeting, onClose, onSuccess }) => {
               <div>
                 <label className="block text-sm font-medium mb-1">Lead</label>
                 <select
-                  value={formData.lead}
+                  value={formData.forLead}
                   onChange={(e) =>
-                    setFormData({ ...formData, lead: e.target.value })
+                    setFormData({ ...formData, forLead: e.target.value })
                   }
                   className="w-full border rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">Select Lead</option>
                   {leads.map((lead) => (
                     <option key={lead._id} value={lead._id}>
-                      {lead.name} - {lead.email}
+                      {lead.title}
                     </option>
                   ))}
                 </select>

@@ -4,6 +4,7 @@ const meetingServices = {
   // Create a new meeting
   createMeeting: async (meetingData) => {
     try {
+      console.log("meetingData in Services", meetingData);
       const response = await api.post("/meeting/create", meetingData);
       return response.data;
     } catch (error) {

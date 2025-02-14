@@ -1,87 +1,207 @@
 import React, { useState } from "react";
+import {
+  X,
+  Phone,
+  Mail,
+  User,
+  Calendar,
+  MessageCircle,
+  Tag,
+  Users,
+} from "lucide-react";
 
-const LeadDetailsModal = ({ lead, onClose, onAddFollowUp }) => {
+const LeadDetailsModal = ({ lead, onClose, onUpdate }) => {
+  const [activeTab, setActiveTab] = useState("details");
   const [followUpText, setFollowUpText] = useState("");
 
-  const handleSubmitFollowUp = async () => {
+  const handleAddFollowUp = async () => {
+    if (!followUpText.trim()) return;
     try {
-      await onAddFollowUp(lead._id, followUpText);
+      await fetch(`/api/leads/${lead._id}/followups`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ conclusion: followUpText }),
+      });
       setFollowUpText("");
+      // Refresh lead details after adding follow-up
+      onUpdate();
     } catch (error) {
       console.error("Error adding follow-up:", error);
     }
   };
 
+  const getStatusColor = (status) => {
+    const colors = {
+      New: "bg-blue-100 text-blue-800",
+      Contacted: "bg-yellow-100 text-yellow-800",
+      Qualified: "bg-green-100 text-green-800",
+      Converted: "bg-purple-100 text-purple-800",
+      Closed: "bg-gray-100 text-gray-800",
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-md w-[800px] max-h-[80vh] overflow-y-auto">
-        <div className="flex justify-between mb-4">
-          <h3 className="text-xl font-semibold">Lead Details</h3>
-          <button onClick={onClose}>✕</button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Lead Details
+            </h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                  lead.status
+                )}`}
+              >
+                {lead.status}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X size={20} className="text-gray-500" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <p className="font-bold">Name:</p>
-            <p>{lead.name}</p>
-          </div>
-          <div>
-            <p className="font-bold">Phone:</p>
-            <p>{lead.phone}</p>
-          </div>
-          <div>
-            <p className="font-bold">Status:</p>
-            <p>{lead.label}</p>
-          </div>
-          {lead.reference && (
-            <div className="col-span-2 bg-gray-50 p-4 rounded">
-              <p className="font-bold mb-2">Reference Contact:</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="font-semibold">Name:</p>
-                  <p>{lead.reference.name}</p>
-                </div>
-                <div>
-                  <p className="font-semibold">Phone:</p>
-                  <p>{lead.reference.phoneNo}</p>
-                </div>
-                {lead.reference.email && (
-                  <div>
-                    <p className="font-semibold">Email:</p>
-                    <p>{lead.reference.email}</p>
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100">
+          <button
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "details"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={() => setActiveTab("details")}
+          >
+            Details
+          </button>
+          <button
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "followups"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={() => setActiveTab("followups")}
+          >
+            Follow-ups ({lead.followUps?.length || 0})
+          </button>
+        </div>
+
+        {/* Content */}
+        <div
+          className="overflow-y-auto"
+          style={{ maxHeight: "calc(90vh - 180px)" }}
+        >
+          {activeTab === "details" ? (
+            <div className="p-6 space-y-6">
+              {/* Contact Information */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">
+                  Contact Information
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Name</label>
+                    <div className="text-sm font-medium">
+                      {lead.contact?.name}
+                    </div>
                   </div>
-                )}
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Phone</label>
+                    <div className="text-sm font-medium">
+                      {lead.contact?.phoneNo}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Email</label>
+                    <div className="text-sm font-medium">
+                      {lead.contact?.email}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Source</label>
+                    <div className="text-sm font-medium">
+                      {lead.source?.name}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead Information */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">
+                  Lead Information
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Created By</label>
+                    <div className="text-sm font-medium">
+                      {lead.createdBy?.name}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">
+                      Created Date
+                    </label>
+                    <div className="text-sm font-medium">
+                      {new Date(lead.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-500">Lead For</label>
+                    <div className="text-sm font-medium">{lead.for?.name}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 space-y-6">
+              {/* Follow-ups List */}
+              <div className="space-y-4">
+                {lead.followUps?.map((followUp, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 rounded-lg p-4 relative"
+                  >
+                    <div className="absolute -left-2 -top-2 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">
+                      {followUp.sequence}
+                    </div>
+                    <div className="ml-2">
+                      <div className="text-xs text-gray-500 mb-1">
+                        {new Date(followUp.createdAt).toLocaleString()}
+                      </div>
+                      <div className="text-sm">{followUp.conclusion}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Follow-up Form */}
+              <div className="mt-4">
+                <textarea
+                  value={followUpText}
+                  onChange={(e) => setFollowUpText(e.target.value)}
+                  placeholder="Enter follow-up details..."
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+                <button
+                  onClick={handleAddFollowUp}
+                  disabled={!followUpText.trim()}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Add Follow-up
+                </button>
               </div>
             </div>
           )}
-        </div>
-
-        <div className="mb-6">
-          <h4 className="font-semibold mb-2">Follow-ups</h4>
-          <div className="space-y-4">
-            {lead.followUps?.map((followUp, index) => (
-              <div key={index} className="border-l-2 border-blue-500 pl-4 ml-4">
-                <p className="text-sm text-gray-500">#{followUp.sequence}</p>
-                <p>{followUp.conclusion}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <h4 className="font-semibold mb-2">Add Follow-up</h4>
-          <textarea
-            value={followUpText}
-            onChange={(e) => setFollowUpText(e.target.value)}
-            className="w-full p-2 border rounded-md mb-2"
-            placeholder="Enter follow-up details..."
-          />
-          <button
-            onClick={handleSubmitFollowUp}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
-          >
-            Add Follow-up
-          </button>
         </div>
       </div>
     </div>
@@ -89,4 +209,3 @@ const LeadDetailsModal = ({ lead, onClose, onAddFollowUp }) => {
 };
 
 export default LeadDetailsModal;
-    

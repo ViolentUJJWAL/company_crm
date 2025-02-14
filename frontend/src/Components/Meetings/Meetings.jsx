@@ -47,7 +47,7 @@ const Meetings = () => {
     try {
       setLoading(true);
       const response = await meetingServices.getMeetings();
-      console.log('response.meetings', response.meetings)
+      console.log("response.meetings", response.meetings);
       setMeetings(response.meetings);
     } catch (error) {
       console.error("Error fetching meetings:", error);
@@ -167,7 +167,7 @@ const Meetings = () => {
                   {formatDate(meeting.scheduledTime)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {meeting.lead?.name || "N/A"}
+                  {meeting.forLead?.title || "N/A"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
