@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import StickyBox from "react-sticky-box";
 import { Trash2 } from "lucide-react";
-import { getStickyNotes, deleteStickyNote } from "../../../services/stickyNotesServices";
-
+import {
+  getStickyNotes,
+  deleteStickyNote,
+} from "../../../services/stickyNotesServices";
+import stickyNotesBG from "../bgImage/stickyNotesBG.png";
 const StickyNotes = () => {
   const [notes, setNotes] = useState([]);
 
@@ -55,7 +58,8 @@ const StickyNotes = () => {
           return (
             <StickyBox
               key={note._id}
-              className="w-48 p-2 bg-gray-300 shadow-md rounded"
+              className="w-48 p-2 shadow-md rounded"
+              style={{ backgroundImage: `url(${stickyNotesBG})` }}
             >
               <div className="flex justify-between items-center">
                 <p className="w-[80px] rounded-2xl text-[12px] font-bold bg-gray-100 p-1 text-center">

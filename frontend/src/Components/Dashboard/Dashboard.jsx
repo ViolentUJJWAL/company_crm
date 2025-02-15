@@ -53,7 +53,7 @@ function Dashboard() {
 
       <div className="flex justify-between">
         <LeadSection leads={dashboardData.latestLeads} />
-        <TaskSection />
+        <EmployeeList />
         <EventSection
           meetings={dashboardData.todayMeetings}
           reminders={dashboardData.activeReminders}
