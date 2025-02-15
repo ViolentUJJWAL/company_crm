@@ -63,12 +63,15 @@ const Sidebar = ({ isOpen, isSidebarOpen, setSidebarOpen }) => {
       flex flex-col 
       ${isOpen ? "w-48" : "w-15"}`}
     >
+      <div className="flex justify-end">
       <button
               onClick={() => setSidebarOpen(!isSidebarOpen)}
-              className=" w-[40px] text-black py-3 px-2 mt-3 ml-3 cursor-pointer bg-gray-200 rounded-lg border border-gray-500 hover:bg-gray-300"
+              className=" w-[40px] text-black py-3 px-2 mt-3 mr-3 cursor-pointer bg-gray-200 rounded-lg border border-gray-500 hover:bg-gray-300"
             >
               {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
+      </div>
+      
       <div className="flex flex-col">
         {menuItems.map((item, index) => (
           <button

@@ -5,6 +5,8 @@ import MeetingForm from "./MeetingForm";
 import { ToastContainer, toast } from "react-toastify";
 import { FaBell, FaSave } from "react-icons/fa";
 import { addStickyNote } from "../../services/stickyNotesServices";
+import { Tooltip } from "react-tooltip";
+
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -236,51 +238,67 @@ const Meetings = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedMeeting(meeting);
-                        setShowForm(true);
-                      }}
-                      className="text-blue-500 hover:text-blue-700 disabled:opacity-50"
-                      disabled={disabledButtons[meeting._id]}
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    {meeting.meetingStatus === "Pending" && (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(meeting._id, "Complete")
-                          }
-                          className="text-green-500 hover:text-green-700 disabled:opacity-50"
-                          disabled={disabledButtons[meeting._id]}
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(meeting._id, "Cancel")
-                          }
-                          className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                          disabled={disabledButtons[meeting._id]}
-                        >
-                          <XCircle size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleSendReminder(meeting._id)}
-                          className="text-orange-500 hover:text-orange-700 disabled:opacity-50"
-                          disabled={disabledButtons[meeting._id]}
-                        >
-                          <Send size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleAddNote(meeting)}
-                          className="text-yellow-500 p-2 rounded-md mr-4"
-                        >
-                          <FaSave size={20} />
-                        </button>
-                      </>
-                    )}
+
+<button
+  data-tooltip-id="edit-tooltip"
+  data-tooltip-content="Edit Meeting"
+  onClick={() => {
+    setSelectedMeeting(meeting);
+    setShowForm(true);
+  }}
+  className="text-blue-500 hover:text-blue-700 disabled:opacity-50"
+  disabled={disabledButtons[meeting._id]}
+>
+  <Edit2 size={16} />
+</button>
+<Tooltip id="edit-tooltip" />
+
+{meeting.meetingStatus === "Pending" && (
+  <>
+    <button
+      data-tooltip-id="complete-tooltip"
+      data-tooltip-content="Mark as Complete"
+      onClick={() => handleStatusChange(meeting._id, "Complete")}
+      className="text-green-500 hover:text-green-700 disabled:opacity-50"
+      disabled={disabledButtons[meeting._id]}
+    >
+      <Check size={16} />
+    </button>
+    <Tooltip id="complete-tooltip" />
+
+    <button
+      data-tooltip-id="cancel-tooltip"
+      data-tooltip-content="Cancel Meeting"
+      onClick={() => handleStatusChange(meeting._id, "Cancel")}
+      className="text-red-500 hover:text-red-700 disabled:opacity-50"
+      disabled={disabledButtons[meeting._id]}
+    >
+      <XCircle size={16} />
+    </button>
+    <Tooltip id="cancel-tooltip" />
+
+    <button
+      data-tooltip-id="reminder-tooltip"
+      data-tooltip-content="Send Reminder"
+      onClick={() => handleSendReminder(meeting._id)}
+      className="text-orange-500 hover:text-orange-700 disabled:opacity-50"
+      disabled={disabledButtons[meeting._id]}
+    >
+      <Send size={16} />
+    </button>
+    <Tooltip id="reminder-tooltip" />
+
+    <button
+      data-tooltip-id="note-tooltip"
+      data-tooltip-content="Add Note"
+      onClick={() => handleAddNote(meeting)}
+      className="text-yellow-500 p-2 rounded-md mr-4"
+    >
+      <FaSave size={20} />
+    </button>
+    <Tooltip id="note-tooltip" />
+  </>
+)}
                   </div>
                 </td>
 
