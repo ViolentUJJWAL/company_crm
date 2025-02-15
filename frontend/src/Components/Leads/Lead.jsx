@@ -11,6 +11,7 @@ import {
 import LeadCard from "./LeadCard";
 import LeadDetailsModal from "./LeadDetailsModal";
 import LeadFormModal from "./LeadFormModal";
+import { ToastContainer, toast } from "react-toastify";
 
 const Lead = () => {
   const [selectedLead, setSelectedLead] = useState(null);
@@ -52,8 +53,9 @@ const Lead = () => {
       console.log("response.data", response.data);
       const groupedLeads = groupLeadsByStatus(response.data);
       setLeads(groupedLeads);
+      toast.success("lead fetching successfully")
     } catch (error) {
-      console.error("Error fetching leads:", error);
+      toast.error("Error fetching leads:", error);
     } finally {
       setLoading(false);
     }
@@ -68,32 +70,32 @@ const Lead = () => {
       New: {
         title: "New",
         leads: [],
-        color: "bg-blue-100",
-        border: "border-blue-700",
+        color: "bg-teal-100",
+        border: "border-teal-300",
       },
       Contacted: {
         title: "Contacted",
         leads: [],
-        color: "bg-yellow-50",
-        border: "border-yellow-200",
+        color: "bg-yellow-100",
+        border: "border-yellow-300",
       },
       Qualified: {
         title: "Qualified",
         leads: [],
-        color: "bg-green-50",
-        border: "border-green-200",
+        color: "bg-green-100",
+        border: "border-green-300",
       },
       Converted: {
         title: "Converted",
         leads: [],
-        color: "bg-purple-50",
-        border: "border-purple-200",
+        color: "bg-purple-100",
+        border: "border-purple-300",
       },
       Closed: {
         title: "Closed",
         leads: [],
-        color: "bg-gray-50",
-        border: "border-gray-200",
+        color: "bg-red-100",
+        border: "border-red-300",
       },
     };
 
@@ -115,7 +117,7 @@ const Lead = () => {
         setViewLead(updatedLeadResponse.data);
       }
     } catch (error) {
-      console.error("Error adding follow-up:", error);
+      toast.error("Error adding follow-up:", error);
     }
   };
 
@@ -131,24 +133,28 @@ const Lead = () => {
       const groupedLeads = groupLeadsByStatus(response.data);
       setLeads(groupedLeads);
     } catch (error) {
-      console.error("Error updating lead status:", error);
+      toast.error("Error updating lead status:", error);
     }
   };
 
   const renderKanbanView = () => (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto p-4 min-h-[calc(100vh-200px)]">
+      <div className="flex gap-2  p-4 h-[calc(100vh-200px)]">
         {leads.map((column) => (
           <Droppable key={column.title} droppableId={column.title}>
             {(provided) => (
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`flex-shrink-0 w-80 ${column.color} rounded-lg p-3 ${column.border}`}
+                className={`maincard flex flex-col w-60 overflow-y-auto justify-start ${column.color} rounded-lg p-1 border ${column.border}`}
               >
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-sm">{column.title}</h3>
-                  <span className="bg-white px-2 py-1 rounded-full text-xs">
+                <div className={`flex justify-between items-center mb-4 p-2 ${
+                     column.title === "New"
+                     ? "bg-teal-300 " : column.title === "Contacted" ? "bg-yellow-300" : column.title=== "Converted" ? "bg-purple-300" :column.title === "Qualified" ? "bg-green-300" :"bg-red-300"
+                   
+                  }`}>
+                  <h3 className={` font-bold mb-2 flex justify-between`}>{column.title}</h3>
+                  <span className="bg-white  px-2 py-2 rounded-full text-xs">
                     {column.leads.length}
                   </span>
                 </div>
@@ -213,11 +219,11 @@ const Lead = () => {
             .flatMap((column) => column.leads)
             .map((lead) => (
               <tr key={lead._id} className="text-xs">
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 text-center">
                   <div className="font-medium">{lead.contact?.name}</div>
                   <div className="text-gray-500">{lead.contact?.phoneNo}</div>
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 text-center">
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
                       lead.status === "New"
@@ -234,15 +240,15 @@ const Lead = () => {
                     {lead.status}
                   </span>
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 text-center">
                   {lead.assignedTo?.user?.name || "Unassigned"}
                 </td>
-                <td className="px-4 py-2">{lead.source?.name}</td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 text-center">{lead.source?.name}</td>
+                <td className="px-4 py-2 text-center">
                   {new Date(lead.createdAt).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-2">
-                  <div className="flex space-x-2">
+                <td className="px-4 py-2 text-center">
+                  <div className="flex space-x-2 justify-center">
                     <button
                       onClick={() => setViewLead(lead)}
                       className="text-blue-600 hover:text-blue-800"
@@ -269,10 +275,13 @@ const Lead = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+                              <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="px-6 py-4 bg-white border-b">
+      <h1 className="text-xl font-semibold mb-4">Leads</h1>
+
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold">Leads</h1>
+          <div className=" items-center space-x-4">
             <div className="flex space-x-2">
               <button
                 onClick={() => setViewMode("kanban")}
@@ -282,7 +291,7 @@ const Lead = () => {
                     : "bg-gray-100"
                 }`}
               >
-                Kanban
+                Card View
               </button>
               <button
                 onClick={() => setViewMode("table")}
@@ -292,7 +301,7 @@ const Lead = () => {
                     : "bg-gray-100"
                 }`}
               >
-                Table
+                Table View
               </button>
             </div>
           </div>
@@ -316,7 +325,7 @@ const Lead = () => {
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="">
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
@@ -338,6 +347,7 @@ const Lead = () => {
               fetchLeads();
             } catch (error) {
               console.log("error", error);
+              toast.error("error",error)
             }
           }}
         />

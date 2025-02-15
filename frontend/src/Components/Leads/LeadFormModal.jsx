@@ -4,6 +4,7 @@ import LeadForServices from "../../services/leadForServices";
 import LeadSourceService from "../../services/leadSourceService";
 import { getVerifiedEmployees } from "../../services/employeeServices";
 import { getLeadById } from "../../services/leadServices";
+import { ToastContainer,toast } from "react-toastify";
 
 const LeadFormModal = ({
   show,
@@ -77,11 +78,14 @@ const LeadFormModal = ({
             remark: lead.remark || "",
             assignedTo: lead.assignedTo ? lead.assignedTo._id : null,
           });
+          
         }
       } catch (error) {
         console.error("Error fetching form data:", error);
+        toast.error("Error fetching form data:", error);
       } finally {
         setLoading(false);
+
       }
     };
 
@@ -133,6 +137,7 @@ const LeadFormModal = ({
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
+      toast.error("Error submitting form:", error);
     }
   };
 
@@ -140,6 +145,8 @@ const LeadFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-gray-500/40 bg-opacity-40 flex justify-center items-center z-50">
+                                    <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         <div className="px-6 py-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-semibold">

@@ -7,6 +7,7 @@ import {
   toggleCompanyStatus,
 } from "../../services/superAdminServices";
 import { Tabs, Tab } from "@mui/material";
+import { toast, ToastContainer } from "react-toastify";
 
 const CompanyTable = () => {
   const [companies, setCompanies] = useState([]);
@@ -22,28 +23,33 @@ const CompanyTable = () => {
       const response = await getAllCompanies();
       setCompanies(response.company);
       console.log(response);
+      toast.success("Fetch company successfully");
       filterCompanies(response.company, tab);
     } catch (error) {
-      console.error("Error fetching companies:", error);
+      toast.error("Error fetching companies:", error);
     }
   };
 
   const handleVerify = async (companyId) => {
     try {
       await verifyCompany(companyId);
+      toast.success("Verify company successfully");
       fetchCompanies();
     } catch (error) {
       console.error("Error verifying company:", error);
+      toast.error("Error verifying company:", error);
     }
   };
 
   const handleToggleStatus = async (companyId) => {
     try {
       await toggleCompanyStatus(companyId);
+      toast.success("Change company status successfully");
 
       fetchCompanies();
     } catch (error) {
       console.error("Error toggling company status:", error);
+      toast.error("Error toggling company status:", error);
     }
   };
 
@@ -64,6 +70,11 @@ const CompanyTable = () => {
 
   return (
     <div>
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
       <div className="max-w-6xl mx-auto p-6 bg-gray-100 rounded-lg shadow-md">
         <Tabs value={tab} onChange={handleTabChange} variant="fullWidth">
           <Tab label="All Companies" value="all" />
