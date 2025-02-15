@@ -6,6 +6,7 @@ import StickyNotes from "./page/StickyNotes";
 import LeadsStatus from "./page/LeadsStatus";
 import LeadSourceChart from "./page/LeadsSource";
 import Calendar from "./page/Calendar";
+import EmployeeList from "./page/EmployData";
 import { getDashboardData } from "../../services/dashboardServices";
 
 function Dashboard() {
