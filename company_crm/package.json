@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "react-big-calendar": "^1.17.1",
-    "react-toastify": "^11.0.3",
-    "recharts": "^2.15.1"
-  }
-}

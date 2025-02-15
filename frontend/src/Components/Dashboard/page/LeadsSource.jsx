@@ -40,7 +40,7 @@ const LeadSourceChart = ({ sourceStats }) => {
   };
 
   useEffect(() => {
-    console.log("sourceStats", sourceStats);
+    // console.log("sourceStats", sourceStats);
     filterDataByDateRange();
   }, [sourceStats]); // Added sourceStats as dependency
 

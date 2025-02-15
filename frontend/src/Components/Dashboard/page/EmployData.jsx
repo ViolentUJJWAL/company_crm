@@ -8,7 +8,7 @@ const EmployeeList = () => {
         const fetchemp  = async ()=>{
           try {
             const response=   await getVerifiedEmployees()
-            console.log("emoloyee",response.data)
+            // console.log("emoloyee",response.data)
             const sortedEmployees = response.data.sort((a, b) => 
                 a.user.name.localeCompare(b.user.name)
             );

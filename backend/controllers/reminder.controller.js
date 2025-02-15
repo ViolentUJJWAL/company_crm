@@ -46,6 +46,7 @@ exports.addReminder = async (req, res) => {
 // Delete a reminder by ID
 exports.deleteReminder = async (req, res) => {
   try {
+    console.log('req.params', req.params)
     const { reminderId } = req.params;
 
     if (!reminderId) {
@@ -56,6 +57,7 @@ exports.deleteReminder = async (req, res) => {
       _id: reminderId,
       user: req.user._id,
     });
+    console.log('reminder', reminder)
     if (!reminder) {
       return res.status(404).json({ message: "Reminder not found" });
     }

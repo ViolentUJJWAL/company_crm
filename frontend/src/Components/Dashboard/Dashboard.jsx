@@ -37,7 +37,7 @@ function Dashboard() {
               forStats: [],
             },
           });
-          console.log("dashboardData.chartData", dashboardData.chartData);
+          // console.log("dashboardData.chartData", dashboardData.chartData);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);

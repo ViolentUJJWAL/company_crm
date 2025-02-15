@@ -40,7 +40,7 @@ const MyCalendar = () => {
           id: meeting._id,
           title: meeting.title,
           start: new Date(meeting.scheduledTime),
-          end: new Date(moment(meeting.scheduledTime).add(1, "hour")), // Assuming 1 hour duration
+          end: new Date(moment(meeting.scheduledTime).add(1, "hour")),
           type: "meeting",
         }))
       );
@@ -111,6 +111,7 @@ const MyCalendar = () => {
         moment(end).format("YYYY-MM-DD")
       );
       const transformedEvents = transformData(response.data);
+      console.log("transformedEvents", transformedEvents);
       setEvents(transformedEvents);
     } catch (error) {
       console.error("Error fetching calendar data:", error);
