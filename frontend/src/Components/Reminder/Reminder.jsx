@@ -5,8 +5,8 @@ import {
   deleteReminder,
   getRemindersByDateRange,
 } from "../../services/reminderServices";
+import { addStickyNote } from "../../services/stickyNotesServices";
 import { toast } from "react-toastify";
-import NotePopup from "../StickyNotePopup/NotePopup";
 
 const ReminderList = () => {
   const [reminders, setReminders] = useState([]);
@@ -15,14 +15,6 @@ const ReminderList = () => {
     startDateTime: new Date().toISOString().split("T")[0],
     endDateTime: new Date().toISOString().split("T")[0],
   });
-
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [noteType, setNoteType] = useState("reminder"); // or 'meeting'
-
-  const openPopup = (type) => {
-    setNoteType(type);
-    setIsPopupOpen(true);
-  };
 
   const navigate = useNavigate();
 
@@ -54,6 +46,23 @@ const ReminderList = () => {
     }
   };
 
+  const handleAddStickyNote = async (reminder) => {
+    try {
+      const formattedDateTime = formatDateTime(reminder.dateTime);
+      const noteMessage = `Reminder: ${reminder.message} - Scheduled for: ${formattedDateTime}`;
+
+      await addStickyNote({
+        type: "reminder",
+        message: noteMessage,
+        url: window.location.pathname,
+      });
+
+      toast.success("Added to notes");
+    } catch (error) {
+      toast.error("Error adding sticky note: " + error.message);
+    }
+  };
+
   const filteredReminders = reminders.filter((reminder) =>
     reminder.message.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -81,6 +90,7 @@ const ReminderList = () => {
   return (
     <div>
       <div className="max-w-7xl mx-auto">
+        {/* Keep existing header and search sections */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-800">Reminders</h2>
           <button
@@ -92,6 +102,7 @@ const ReminderList = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          {/* Keep existing search and date range filters */}
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
@@ -192,10 +203,10 @@ const ReminderList = () => {
                         <FaTrash size={14} />
                       </button>
                       <button
-                        onClick={() => openPopup("reminder")}
-                        className="text-yellow-500 p-2 rounded-md mr-4"
+                        onClick={() => handleAddStickyNote(reminder)}
+                        className="text-yellow-500 hover:text-yellow-700"
                       >
-                        <FaBell size={20} /> {/* Reminder Icon */}
+                        <FaBell size={20} />
                       </button>
                     </div>
                   </td>
@@ -205,11 +216,6 @@ const ReminderList = () => {
           </table>
         </div>
       </div>
-      <NotePopup
-        isOpen={isPopupOpen}
-        onClose={() => setIsPopupOpen(false)}
-        type={noteType}
-      />
     </div>
   );
 };

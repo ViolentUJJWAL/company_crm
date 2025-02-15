@@ -4,7 +4,7 @@ import meetingServices from "../../services/meetingServices";
 import MeetingForm from "./MeetingForm";
 import { ToastContainer, toast } from "react-toastify";
 import { FaBell } from "react-icons/fa";
-import NotePopup from "../StickyNotePopup/NotePopup";
+import { addStickyNote } from "../../services/stickyNotesServices";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -28,6 +28,9 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 };
 
 const Meetings = () => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [noteType, setNoteType] = useState("meeting");
+
   const [meetings, setMeetings] = useState([]);
   const [filters, setFilters] = useState({
     status: "Pending",
@@ -41,8 +44,6 @@ const Meetings = () => {
   const [conclusion, setConclusion] = useState("");
   const [statusToChange, setStatusToChange] = useState(null);
   const [disabledButtons, setDisabledButtons] = useState({});
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [noteType, setNoteType] = useState("meeting");
 
   const openPopup = (type) => {
     setNoteType(type);
@@ -59,7 +60,7 @@ const Meetings = () => {
       const response = await meetingServices.getMeetings();
       console.log("response.meetings", response.meetings);
       setMeetings(response.meetings);
-      toast.success("fetch meetings successfully")
+      toast.success("fetch meetings successfully");
     } catch (error) {
       toast.error("Error fetching meetings:", error);
     } finally {
@@ -108,6 +109,23 @@ const Meetings = () => {
       }, 3000);
     } catch (error) {
       toast.error("Error sending reminder:", error);
+    }
+  };
+
+  const handleAddNote = async (meeting) => {
+    try {
+      const formattedTime = formatDate(meeting.scheduledTime);
+      const noteMessage = `Meeting: ${meeting.title} - Scheduled for: ${formattedTime}`;
+
+      await addStickyNote({
+        type: "meeting",
+        message: noteMessage,
+        url: window.location.pathname,
+      });
+
+      toast.success("Added to Notes");
+    } catch (error) {
+      toast.error("Error adding note: " + error.message);
     }
   };
 
@@ -256,10 +274,10 @@ const Meetings = () => {
                           <Send size={16} />
                         </button>
                         <button
-                          onClick={() => openPopup("reminder")}
+                          onClick={() => handleAddNote(meeting)}
                           className="text-yellow-500 p-2 rounded-md mr-4"
                         >
-                          <FaBell size={20} /> {/* Reminder Icon */}
+                          <FaBell size={20} />
                         </button>
                       </>
                     )}
@@ -336,11 +354,11 @@ const Meetings = () => {
           </div>
         </div>
       </Modal>
-      <NotePopup  
+      {/* <NotePopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
         type={noteType}
-      />
+      /> */}
     </div>
   );
 };

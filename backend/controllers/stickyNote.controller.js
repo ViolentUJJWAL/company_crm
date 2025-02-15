@@ -3,6 +3,7 @@ const StickyNote = require("../models/stickyNote.model");
 // 📌 **Add a new sticky note**
 exports.addStickyNote = async (req, res) => {
     try {
+        console.log('req.body', req.body)
         const { type, message, url } = req.body;
 
         if ( !type || !message) {

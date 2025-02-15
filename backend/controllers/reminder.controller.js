@@ -80,15 +80,19 @@ exports.getRemindersByDateRange = async (req, res) => {
         .json({ message: "Start and end datetime are required" });
     }
 
-    const startDateTime = new Date("2025-02-13"); // Convert string to Date object
-    const endDateTime = new Date("2025-02-13"); // Convert string to Date object
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
 
     const startOfDay = new Date(startDateTime.setHours(0, 0, 0, 0)); // Start of the day (00:00)
     const endOfDay = new Date(endDateTime.setHours(23, 59, 59, 999)); // End of the day (23:59)
 
     console.log(startOfDay, endOfDay);
 
-    const reminders = await this.fetchReminders(startOfDay, endOfDay,req.user._id);
+    const reminders = await this.fetchReminders(
+      startOfDay,
+      endOfDay,
+      req.user._id
+    );
 
     return res.status(200).json({
       message: "Reminders fetched successfully",
@@ -135,63 +139,106 @@ exports.fetchReminders = async (startDateTime, endDateTime, userId) => {
     let allReminders = [...fixedReminders];
 
     // 📌 **Generate Daily Reminders**
-    let tempDate = new Date(start);
-    while (tempDate <= end) {
+    for (
+      let tempDate = new Date(start);
+      tempDate <= end;
+      tempDate.setDate(tempDate.getDate() + 1)
+    ) {
       dailyReminders.forEach((reminder) => {
         allReminders.push({
           ...reminder.toObject(),
-          dateTime: new Date(tempDate.setHours(9, 0, 0, 0)), // Set to 09:00 AM
+          dateTime: new Date(
+            tempDate.getFullYear(),
+            tempDate.getMonth(),
+            tempDate.getDate(),
+            9,
+            0,
+            0,
+            0
+          ), // Set to 09:00 AM
           generated: true,
         });
       });
-      tempDate.setDate(tempDate.getDate() + 1);
     }
 
     // 📌 **Generate Weekly Reminders**
     weeklyReminders.forEach((reminder) => {
-      let weekDate = new Date(start);
-      while (weekDate <= end) {
+      for (
+        let weekDate = new Date(start);
+        weekDate <= end;
+        weekDate.setDate(weekDate.getDate() + 1)
+      ) {
         if (reminder.days.includes(weekDate.getDay())) {
           allReminders.push({
             ...reminder.toObject(),
-            dateTime: new Date(weekDate.setHours(9, 0, 0, 0)), // Set to 09:00 AM
+            dateTime: new Date(
+              weekDate.getFullYear(),
+              weekDate.getMonth(),
+              weekDate.getDate(),
+              9,
+              0,
+              0,
+              0
+            ),
             generated: true,
           });
         }
-        weekDate.setDate(weekDate.getDate() + 1);
       }
     });
 
     // 📌 **Generate Monthly Reminders**
     monthlyReminders.forEach((reminder) => {
-      let monthDate = new Date(start);
-      while (monthDate <= end) {
-        if (monthDate.getDate() === new Date(reminder.dateTime).getDate()) {
+      const reminderDay = new Date(reminder.dateTime).getDate();
+      for (
+        let monthDate = new Date(start);
+        monthDate <= end;
+        monthDate.setDate(monthDate.getDate() + 1)
+      ) {
+        if (monthDate.getDate() === reminderDay) {
           allReminders.push({
             ...reminder.toObject(),
-            dateTime: new Date(monthDate.setHours(9, 0, 0, 0)), // Set to 9:00 AM
+            dateTime: new Date(
+              monthDate.getFullYear(),
+              monthDate.getMonth(),
+              monthDate.getDate(),
+              9,
+              0,
+              0,
+              0
+            ),
             generated: true,
           });
         }
-        monthDate.setDate(monthDate.getDate() + 1);
       }
     });
 
     // 📌 **Generate Yearly Reminders**
     yearlyReminders.forEach((reminder) => {
-      let yearDate = new Date(start);
-      while (yearDate <= end) {
+      const reminderDay = new Date(reminder.dateTime).getDate();
+      const reminderMonth = new Date(reminder.dateTime).getMonth();
+      for (
+        let yearDate = new Date(start);
+        yearDate <= end;
+        yearDate.setDate(yearDate.getDate() + 1)
+      ) {
         if (
-          yearDate.getDate() === new Date(reminder.dateTime).getDate() &&
-          yearDate.getMonth() === new Date(reminder.dateTime).getMonth()
+          yearDate.getDate() === reminderDay &&
+          yearDate.getMonth() === reminderMonth
         ) {
           allReminders.push({
             ...reminder.toObject(),
-            dateTime: new Date(yearDate.setHours(9, 0, 0, 0)), // Set to 9:00 AM
+            dateTime: new Date(
+              yearDate.getFullYear(),
+              yearDate.getMonth(),
+              yearDate.getDate(),
+              9,
+              0,
+              0,
+              0
+            ),
             generated: true,
           });
         }
-        yearDate.setDate(yearDate.getDate() + 1);
       }
     });
 
