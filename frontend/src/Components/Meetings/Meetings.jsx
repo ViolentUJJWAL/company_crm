@@ -60,7 +60,6 @@ const Meetings = () => {
       console.log("response.meetings", response.meetings);
       setMeetings(response.meetings);
       toast.success("fetch meetings successfully")
-      toast.success("fetch meetings");
     } catch (error) {
       toast.error("Error fetching meetings:", error);
     } finally {
