@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
-import LeadForServices from "../../../services/LeadForServices";
 import { ToastContainer, toast } from "react-toastify";
+import LeadForServices from "../../../services/leadForServices";
 // import "react-toastify/dist/ReactToastify.css";
 
 export default function LeadPage() {

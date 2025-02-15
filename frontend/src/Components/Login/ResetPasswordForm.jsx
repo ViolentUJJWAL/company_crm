@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import authServices from "../../services/authServices";
+import { ToastContainer,toast } from "react-toastify";
 
 const ResetPasswordForm = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const ResetPasswordForm = () => {
       } catch (error) {
         setIsTokenValid(false);
         setMessage("Invalid or expired link.");
+        toast.error("Invalid or expired link.")
       }
     };
     verifyToken();
@@ -31,14 +33,20 @@ const ResetPasswordForm = () => {
     const newErrors = {};
     if (!formData.password) {
       newErrors.password = "Password is required";
+      toast.error("Password is required")
     } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
+      toast.error("Password must be at least 8 characters long")
+
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
+      toast.error("Please confirm your password")
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+      toast.error("Passwords do not match")
+
     }
 
     setErrors(newErrors);
@@ -67,6 +75,7 @@ const ResetPasswordForm = () => {
         formData.password
       );
       setMessage("Password reset successful!");
+      toast.success("Password reset successful!")
       setTimeout(() => {
         navigate("/login");
       }, 2000);
@@ -87,6 +96,7 @@ const ResetPasswordForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

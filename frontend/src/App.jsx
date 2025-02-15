@@ -23,6 +23,7 @@ import EmployeeTasks from "./Components/EmployeeTask/EmployeeTask";
 import Meetings from "./Components/Meetings/Meetings";
 import Contacts from "./Components/Contacts/Contacts";
 import SuperAdminDashboard from "./Components/SuperAdmin/SuperAdminDashboard"
+import './App.css'
 function App() {
   const [count, setCount] = useState(0);
 

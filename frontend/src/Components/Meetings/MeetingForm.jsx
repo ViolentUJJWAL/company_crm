@@ -3,6 +3,7 @@ import { XCircle } from "lucide-react";
 import meetingServices from "../../services/meetingServices";
 import { getVerifiedEmployees } from "../../services/employeeServices";
 import { getLeads } from "../../services/leadServices";
+import { toast, ToastContainer } from "react-toastify";
 const MeetingForm = ({ meeting, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: meeting?.title || "",
@@ -37,7 +38,7 @@ const MeetingForm = ({ meeting, onClose, onSuccess }) => {
         setEmployees(employeesData.data || []);
         setLeads(leadsData.data || []);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -55,8 +56,9 @@ const MeetingForm = ({ meeting, onClose, onSuccess }) => {
         await meetingServices.createMeeting(formData);
       }
       onSuccess();
+      toast.success("save meeting successfully")
     } catch (error) {
-      console.error("Error saving meeting:", error);
+      toast.error("Error saving meeting:", error);
     }
   };
 
@@ -83,6 +85,8 @@ const MeetingForm = ({ meeting, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center overflow-auto">
+                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      
       <div className="bg-white w-full max-h-screen overflow-y-auto">
         <div className="max-w-5xl mx-auto pl-52 py-6">
           <div className="flex justify-between items-center mb-6">

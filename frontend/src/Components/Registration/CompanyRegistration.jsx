@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Camera } from "lucide-react";
 import authServices from "../../services/authServices";
+import { toast,ToastContainer } from "react-toastify";
 
 const CompanyRegistration = () => {
   const [imagePreview, setImagePreview] = useState(null);
@@ -85,6 +86,7 @@ const CompanyRegistration = () => {
       console.log("response", response);
       if (response.message) {
         setSuccess("Company registered successfully!");
+        toast.success("Company registered successfully!")
         setFormData({
           ownerName: "",
           companyName: "",
@@ -106,6 +108,7 @@ const CompanyRegistration = () => {
       setImagePreview(null);
     } catch (err) {
       setError(err.message || "Server error. Please try again.");
+      toast.error("Server error. Please try again")
     } finally {
       setIsSubmitting(false);
     }
@@ -113,6 +116,7 @@ const CompanyRegistration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="relative px-6 py-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">

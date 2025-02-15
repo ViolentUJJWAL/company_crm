@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import authServices from "../../services/authServices";
 import { useNavigate } from "react-router";
+import { ToastContainer, toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -40,10 +41,11 @@ const Login = () => {
       const response = await authServices.login(formData);
       if (response.token) {
         navigate("/");
-        setSuccess("Login successful!");
+        toast.success("Login successful!");
       }
     } catch (err) {
       setError(err.message || "Login failed. Please try again.");
+      toast.error(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -77,6 +79,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="relative px-6 py-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
