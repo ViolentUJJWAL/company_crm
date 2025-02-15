@@ -212,6 +212,7 @@ const ReminderList = () => {
                       <button
                         onClick={() => handleDelete(reminder._id)}
                         className="text-red-500 hover:text-red-700"
+                        title="Delete Reminder"
                       >
                         <FaTrash size={14} />
                       </button>
@@ -222,6 +223,7 @@ const ReminderList = () => {
                           setTimeout(() => setClicked(false), 200);
                         }}
                         className="text-yellow-500 hover:text-red-700 transition-colors"
+                        title="Save as Sticky"
                       >
                         <FaSave
                           className={`transition-transform duration-200 ${

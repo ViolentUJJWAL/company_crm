@@ -160,7 +160,7 @@ const MyCalendar = () => {
   return (
     <div className="h-[70vh] my-10">
       <div className="flex">
-        <div className="w-1/5 bg-gray-200 p-5 mb-4 flex flex-col">
+        <div className="w-1/8 bg-gray-200 p-5 mb-4 flex flex-col">
           <h2 className="text-xl font-bold mb-4">Filters</h2>
           <FormControlLabel
             label="Meetings"
@@ -249,7 +249,7 @@ const MyCalendar = () => {
           />
         </div>
 
-        <div className="w-4/5 p-5">
+        <div className="w-7/8 p-5">
           <h2 className="text-2xl font-bold text-center mb-4">
             Event Calendar
           </h2>

@@ -6,6 +6,7 @@ import {
   deleteStickyNote,
 } from "../../../services/stickyNotesServices";
 import stickyNotesBG from "../bgImage/stickyNotesBG.png";
+import { Tooltip } from "react-tooltip";
 const StickyNotes = () => {
   const [notes, setNotes] = useState([]);
 
@@ -44,7 +45,7 @@ const StickyNotes = () => {
       };
     }
     return {
-      title: message.substring(0, 20) + (message.length > 20 ? "..." : ""),
+      title: message.substring(0, 20) + (message.length > 150 ? "..." : ""),
       description: message,
     };
   };
@@ -67,12 +68,13 @@ const StickyNotes = () => {
                 <p className=" px-2 rounded-2xl text-[10px] font-bold bg-gray-100 p-1 text-center">
                   {note.type.charAt(0).toUpperCase() + note.type.slice(1)}
                 </p>
-                <p className="" onClick={() => deleteNote(note._id)}>
+                <p className=" hover:text-red-700" data-tooltip-id="delete-note"  data-tooltip-content="Delete Sticky Note" onClick={() => deleteNote(note._id)}>
                   <Trash2 size={16} />
                 </p>
+                <Tooltip id="delete-note" />
               </div>
-              <h1 className="font-bold text-[15px]">{title}</h1>
-              <p className=" text-[12px]">{description}</p>
+              <h1 className="font-bold text-[15px] word-break: break-all">{title}</h1>
+              {/* <p className=" text-[12px]">{description}</p> */}
             </StickyBox>
           );
         })}

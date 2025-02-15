@@ -30,6 +30,7 @@
     "react-router-dom": "^7.1.5",
     "react-sticky-box": "^2.0.5",
     "react-toastify": "^11.0.3",
+    "react-tooltip": "^5.28.0",
     "recharts": "^2.15.1",
     "tailwindcss": "^4.0.3"
   },
