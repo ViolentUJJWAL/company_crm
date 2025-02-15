@@ -3,7 +3,7 @@ import { Plus, Edit2, XCircle, Check, Send } from "lucide-react";
 import meetingServices from "../../services/meetingServices";
 import MeetingForm from "./MeetingForm";
 import { ToastContainer, toast } from "react-toastify";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaSave } from "react-icons/fa";
 import { addStickyNote } from "../../services/stickyNotesServices";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -115,7 +115,7 @@ const Meetings = () => {
   const handleAddNote = async (meeting) => {
     try {
       const formattedTime = formatDate(meeting.scheduledTime);
-      const noteMessage = `Meeting: ${meeting.title} - Scheduled for: ${formattedTime}`;
+      const noteMessage = `${meeting.title} - ${formattedTime}`;
 
       await addStickyNote({
         type: "meeting",
@@ -277,7 +277,7 @@ const Meetings = () => {
                           onClick={() => handleAddNote(meeting)}
                           className="text-yellow-500 p-2 rounded-md mr-4"
                         >
-                          <FaBell size={20} />
+                          <FaSave size={20} />
                         </button>
                       </>
                     )}

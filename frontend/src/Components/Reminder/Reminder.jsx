@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaBell, FaTrash, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import {
+  FaBell,
+  FaTrash,
+  FaSearch,
+  FaCalendarAlt,
+  FaSave,
+} from "react-icons/fa";
 import {
   deleteReminder,
   getRemindersByDateRange,
 } from "../../services/reminderServices";
 import { addStickyNote } from "../../services/stickyNotesServices";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 const ReminderList = () => {
+  const [clicked, setClicked] = useState(false);
+
   const [reminders, setReminders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState({
@@ -49,7 +57,7 @@ const ReminderList = () => {
   const handleAddStickyNote = async (reminder) => {
     try {
       const formattedDateTime = formatDateTime(reminder.dateTime);
-      const noteMessage = `Reminder: ${reminder.message} - Scheduled for: ${formattedDateTime}`;
+      const noteMessage = `${reminder.message} - ${formattedDateTime}`;
 
       await addStickyNote({
         type: "reminder",
@@ -89,6 +97,11 @@ const ReminderList = () => {
 
   return (
     <div>
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
       <div className="max-w-7xl mx-auto">
         {/* Keep existing header and search sections */}
         <div className="flex justify-between items-center mb-6">
@@ -203,10 +216,19 @@ const ReminderList = () => {
                         <FaTrash size={14} />
                       </button>
                       <button
-                        onClick={() => handleAddStickyNote(reminder)}
-                        className="text-yellow-500 hover:text-yellow-700"
+                        onClick={() => {
+                          setClicked(true);
+                          handleAddStickyNote(reminder);
+                          setTimeout(() => setClicked(false), 200);
+                        }}
+                        className="text-yellow-500 hover:text-red-700 transition-colors"
                       >
-                        <FaBell size={20} />
+                        <FaSave
+                          className={`transition-transform duration-200 ${
+                            clicked ? "scale-125" : "scale-100"
+                          }`}
+                          size={20}
+                        />
                       </button>
                     </div>
                   </td>
