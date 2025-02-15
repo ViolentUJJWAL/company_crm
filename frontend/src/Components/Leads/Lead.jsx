@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import {
   addFollowUp,
@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 const Lead = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [viewLead, setViewLead] = useState(null);
+  const searchTimeout = useRef(null);
   const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [leads, setLeads] = useState([]);
@@ -26,6 +27,8 @@ const Lead = () => {
     status: "",
     assignedTo: "",
   });
+  const [allLeads, setAllLeads] = useState([]); // Store all leads from API
+  const [searchTerm, setSearchTerm] = useState(""); // Separate from API filters
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     leadForId: "",
@@ -49,11 +52,17 @@ const Lead = () => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const response = await getLeads(filters);
-      console.log("response.data", response.data);
-      const groupedLeads = groupLeadsByStatus(response.data);
+      const response = await getLeads({
+        status: filters.status,
+        assignedTo: filters.assignedTo,
+      });
+      const leads = response.data;
+      setAllLeads(leads); // Store all leads
+
+      // Apply frontend search filter
+      const filteredLeads = searchTerm ? filterLeads(leads, searchTerm) : leads;
+      const groupedLeads = groupLeadsByStatus(filteredLeads);
       setLeads(groupedLeads);
-      toast.success("lead fetching successfully")
     } catch (error) {
       toast.error("Error fetching leads:", error);
     } finally {
@@ -64,6 +73,28 @@ const Lead = () => {
   useEffect(() => {
     fetchLeads();
   }, [filters]);
+
+  const filterLeads = (leads, term) => {
+    const searchLower = term.toLowerCase();
+    return leads.filter((lead) => {
+      return (
+        // Contact info
+        lead.contact?.name?.toLowerCase().includes(searchLower) ||
+        lead.contact?.email?.toLowerCase().includes(searchLower) ||
+        lead.contact?.phoneNo?.toLowerCase().includes(searchLower) ||
+        // Reference info
+        lead.reference?.name?.toLowerCase().includes(searchLower) ||
+        lead.reference?.email?.toLowerCase().includes(searchLower) ||
+        lead.reference?.phoneNo?.toLowerCase().includes(searchLower) ||
+        // Other fields
+        lead.status?.toLowerCase().includes(searchLower) ||
+        lead.priority?.toLowerCase().includes(searchLower) ||
+        lead.source?.name?.toLowerCase().includes(searchLower) ||
+        lead.assignedTo?.user?.name?.toLowerCase().includes(searchLower) ||
+        lead.remark?.toLowerCase().includes(searchLower)
+      );
+    });
+  };
 
   const groupLeadsByStatus = (leadsData) => {
     const statusGroups = {
@@ -146,14 +177,24 @@ const Lead = () => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`maincard flex flex-col w-60 overflow-y-auto justify-start ${column.color} rounded-lg p-1 border ${column.border}`}
+                className={`maincard flex flex-col h-[calc(100vh-105px)] w-60 overflow-y-auto justify-start ${column.color} rounded-lg p-1 border ${column.border}`}
               >
-                <div className={`flex justify-between items-center mb-4 p-2 ${
-                     column.title === "New"
-                     ? "bg-teal-300 " : column.title === "Contacted" ? "bg-yellow-300" : column.title=== "Converted" ? "bg-purple-300" :column.title === "Qualified" ? "bg-green-300" :"bg-red-300"
-                   
-                  }`}>
-                  <h3 className={` font-bold mb-2 flex justify-between`}>{column.title}</h3>
+                <div
+                  className={`flex justify-between items-center mb-4 p-2 ${
+                    column.title === "New"
+                      ? "bg-teal-300 "
+                      : column.title === "Contacted"
+                      ? "bg-yellow-300"
+                      : column.title === "Converted"
+                      ? "bg-purple-300"
+                      : column.title === "Qualified"
+                      ? "bg-green-300"
+                      : "bg-red-300"
+                  }`}
+                >
+                  <h3 className={` font-bold mb-2 flex justify-between`}>
+                    {column.title}
+                  </h3>
                   <span className="bg-white  px-2 py-2 rounded-full text-xs">
                     {column.leads.length}
                   </span>
@@ -275,10 +316,14 @@ const Lead = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-                              <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
-      
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
+
       <div className="px-6 py-4 bg-white border-b">
-      <h1 className="text-xl font-semibold mb-4">Leads</h1>
+        <h1 className="text-xl font-semibold mb-4">Leads</h1>
 
         <div className="flex justify-between items-center">
           <div className=" items-center space-x-4">
@@ -308,20 +353,24 @@ const Lead = () => {
           <div className="flex items-center space-x-4">
             <input
               type="text"
-              placeholder="Search leads..."
+              placeholder="Search clients..."
               className="px-3 py-1 text-sm border rounded-md w-64"
-              value={filters.search}
-              onChange={(e) =>
-                setFilters({ ...filters, search: e.target.value })
-              }
+              value={searchTerm}
+              onChange={(e) => {
+                const newSearchTerm = e.target.value;
+                setSearchTerm(newSearchTerm);
+                const filteredLeads = filterLeads(allLeads, newSearchTerm);
+                const groupedLeads = groupLeadsByStatus(filteredLeads);
+                setLeads(groupedLeads);
+              }}
             />
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-4 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Add Lead
-            </button>
           </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Add Lead
+          </button>
         </div>
       </div>
 
@@ -347,7 +396,7 @@ const Lead = () => {
               fetchLeads();
             } catch (error) {
               console.log("error", error);
-              toast.error("error",error)
+              toast.error("error", error);
             }
           }}
         />

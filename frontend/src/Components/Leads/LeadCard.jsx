@@ -10,6 +10,7 @@ import {
   UserPlus,
   FileText,
 } from "lucide-react";
+import { BiSolidNetworkChart } from "react-icons/bi";
 
 const LeadCard = ({
   lead,
@@ -59,7 +60,7 @@ const LeadCard = ({
           >
             <Edit2 size={16} className="text-gray-600" />
           </button>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               onAssignClick && onAssignClick(lead);
@@ -68,17 +69,18 @@ const LeadCard = ({
             title="Assign Lead"
           >
             <UserPlus size={16} className="text-gray-600" />
-          </button>
+          </button> */}
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onFollowUpClick && onFollowUpClick(lead);
+              onLeadClick(lead); // Open the details modal
+              onFollowUpClick && onFollowUpClick(lead); // This will now be used to set showFollowUpForm
             }}
             className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
             title="Add Follow-up"
           >
             {lead.followUps?.length > 0 ? (
-              <MessageCircle size={16} className="text-blue-600" />
+              <BiSolidNetworkChart size={16} className="text-blue-600" />
             ) : (
               <Plus size={16} className="text-gray-600" />
             )}
@@ -116,7 +118,7 @@ const LeadCard = ({
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <FileText size={14} />
-            <span>For: {lead.for?.name || "N/A"}</span>
+            <span>Label: {lead.for?.name || "N/A"}</span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <User size={14} />
