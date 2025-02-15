@@ -3,8 +3,8 @@ import { Plus, Edit2, XCircle, Check, Send } from "lucide-react";
 import meetingServices from "../../services/meetingServices";
 import MeetingForm from "./MeetingForm";
 import { ToastContainer, toast } from "react-toastify";
-
-
+import { FaBell } from "react-icons/fa";
+import NotePopup from "../StickyNotePopup/NotePopup";
 
 const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
@@ -41,6 +41,13 @@ const Meetings = () => {
   const [conclusion, setConclusion] = useState("");
   const [statusToChange, setStatusToChange] = useState(null);
   const [disabledButtons, setDisabledButtons] = useState({});
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [noteType, setNoteType] = useState("meeting");
+
+  const openPopup = (type) => {
+    setNoteType(type);
+    setIsPopupOpen(true);
+  };
 
   useEffect(() => {
     fetchMeetings();
@@ -52,7 +59,7 @@ const Meetings = () => {
       const response = await meetingServices.getMeetings();
       console.log("response.meetings", response.meetings);
       setMeetings(response.meetings);
-      toast.success("fetch meetings")
+      toast.success("fetch meetings");
     } catch (error) {
       toast.error("Error fetching meetings:", error);
     } finally {
@@ -123,7 +130,11 @@ const Meetings = () => {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
-            <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">Meetings</h1>
@@ -139,122 +150,133 @@ const Meetings = () => {
       </div>
 
       <div className="overflow-x-auto">
-      <table className="min-w-full bg-white rounded-lg">
-  <thead>
-    <tr className="bg-gray-300">
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Title
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Schedule
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Lead
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Status
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Participants
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        External Participants
-      </th>
-      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        Actions
-      </th>
-    </tr>
-  </thead>
-  <tbody className="divide-y divide-gray-400">
-    {meetings.map((meeting) => (
-      <tr key={meeting._id} className="group hover:bg-gray-100 relative">
-        <td className="px-6 py-4 whitespace-nowrap">{meeting.title}</td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          {formatDate(meeting.scheduledTime)}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          {meeting.forLead?.title || "N/A"}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span
-            className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(
-              meeting.meetingStatus
-            )}`}
-          >
-            {meeting.meetingStatus}
-          </span>
-        </td>
-        <td className="px-6 py-4">
-          <div className="max-w-xs overflow-hidden">
-            {meeting.participants.map((participant) => (
-              <div key={participant._id} className="text-sm truncate">
-                {participant?.name}
-              </div>
-            ))}
-          </div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="max-w-xs overflow-hidden">
-            {meeting.addParticipants?.map((participant) => (
-              <div key={participant._id} className="text-sm truncate">
-                {participant?.name} ({participant?.email})
-              </div>
-            ))}
-          </div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setSelectedMeeting(meeting);
-                setShowForm(true);
-              }}
-              className="text-blue-500 hover:text-blue-700 disabled:opacity-50"
-              disabled={disabledButtons[meeting._id]}
-            >
-              <Edit2 size={16} />
-            </button>
-            {meeting.meetingStatus === "Pending" && (
-              <>
-                <button
-                  onClick={() => handleStatusChange(meeting._id, "Complete")}
-                  className="text-green-500 hover:text-green-700 disabled:opacity-50"
-                  disabled={disabledButtons[meeting._id]}
-                >
-                  <Check size={16} />
-                </button>
-                <button
-                  onClick={() => handleStatusChange(meeting._id, "Cancel")}
-                  className="text-red-500 hover:text-red-700 disabled:opacity-50"
-                  disabled={disabledButtons[meeting._id]}
-                >
-                  <XCircle size={16} />
-                </button>
-                <button
-                  onClick={() => handleSendReminder(meeting._id)}
-                  className="text-orange-500 hover:text-orange-700 disabled:opacity-50"
-                  disabled={disabledButtons[meeting._id]}
-                >
-                  <Send size={16} />
-                </button>
-              </>
-            )}
-          </div>
-        </td>
+        <table className="min-w-full bg-white rounded-lg">
+          <thead>
+            <tr className="bg-gray-300">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Schedule
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Lead
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Participants
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                External Participants
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-400">
+            {meetings.map((meeting) => (
+              <tr
+                key={meeting._id}
+                className="group hover:bg-gray-100 relative"
+              >
+                <td className="px-6 py-4 whitespace-nowrap">{meeting.title}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {formatDate(meeting.scheduledTime)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {meeting.forLead?.title || "N/A"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(
+                      meeting.meetingStatus
+                    )}`}
+                  >
+                    {meeting.meetingStatus}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="max-w-xs overflow-hidden">
+                    {meeting.participants.map((participant) => (
+                      <div key={participant._id} className="text-sm truncate">
+                        {participant?.name}
+                      </div>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="max-w-xs overflow-hidden">
+                    {meeting.addParticipants?.map((participant) => (
+                      <div key={participant._id} className="text-sm truncate">
+                        {participant?.name} ({participant?.email})
+                      </div>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedMeeting(meeting);
+                        setShowForm(true);
+                      }}
+                      className="text-blue-500 hover:text-blue-700 disabled:opacity-50"
+                      disabled={disabledButtons[meeting._id]}
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    {meeting.meetingStatus === "Pending" && (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleStatusChange(meeting._id, "Complete")
+                          }
+                          className="text-green-500 hover:text-green-700 disabled:opacity-50"
+                          disabled={disabledButtons[meeting._id]}
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleStatusChange(meeting._id, "Cancel")
+                          }
+                          className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                          disabled={disabledButtons[meeting._id]}
+                        >
+                          <XCircle size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleSendReminder(meeting._id)}
+                          className="text-orange-500 hover:text-orange-700 disabled:opacity-50"
+                          disabled={disabledButtons[meeting._id]}
+                        >
+                          <Send size={16} />
+                        </button>
+                        <button
+                          onClick={() => openPopup("reminder")}
+                          className="text-yellow-500 p-2 rounded-md mr-4"
+                        >
+                          <FaBell size={20} /> {/* Reminder Icon */}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
 
-        {/* Conclusion column, only shown on hover */}
-        {meeting.conclusion && (
-<div className=" min-w-[150px] absolute right-[50%] top-[-100%] px-2 bg-gray-200 rounded-xl shadow-lg hidden group-hover:block">
-            <p className=" font-bold text-gray-800">conclusion:</p>
-            {meeting.conclusion}
-          </div>
-          
-        )}
-      </tr>
-    ))}
-  </tbody>
-</table>
-
+                {/* Conclusion column, only shown on hover */}
+                {meeting.conclusion && (
+                  <div className=" min-w-[150px] absolute right-[50%] top-[-100%] px-2 bg-gray-200 rounded-xl shadow-lg hidden group-hover:block">
+                    <p className=" font-bold text-gray-800">conclusion:</p>
+                    {meeting.conclusion}
+                  </div>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {showForm && (
@@ -314,6 +336,11 @@ const Meetings = () => {
           </div>
         </div>
       </Modal>
+      <NotePopup  
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        type={noteType}
+      />
     </div>
   );
 };

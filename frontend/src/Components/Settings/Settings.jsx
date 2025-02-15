@@ -10,16 +10,16 @@ export default function Settings() {
       settings: [
         { icon: "📦", title: "Lead For", link: "/lead-for" },
         { icon: "⚫", title: "Lead Source", link: "/lead-source" },
-        { icon: "💻", title: "Lead Status", link: "/lead-status-label" },
+        // { icon: "💻", title: "Lead Status", link: "/lead-status-label" },
       ],
     },
-    {
-      title: "Role settings",
-      description: "Manage system preferences",
-      settings: [
-        { icon: "🔋", title: "Block/Unblock Role", link: "/role-settings" },
-      ],
-    },
+    // {
+    //   title: "Role settings",
+    //   description: "Manage system preferences",
+    //   settings: [
+    //     { icon: "🔋", title: "Block/Unblock Role", link: "/role-settings" },
+    //   ],
+    // },
     {
       title: "Block Employee",
       description: "Control your privacy settings",

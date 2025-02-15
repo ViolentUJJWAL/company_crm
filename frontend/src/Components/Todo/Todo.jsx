@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 
 const Todo = () => {
   const [todos, setTodos] = useState([]);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [conclusion, setConclusion] = useState("");
   const [remark, setRemark] = useState("");
@@ -27,11 +27,42 @@ const Todo = () => {
     );
   };
 
+  const handleEditClick = (todo) => {
+    setEditingTodoId(todo._id);
+    setFormData({
+      title: todo.title,
+      description: todo.description,
+      dueDate: new Date(todo.dueDate).toISOString().split("T")[0],
+      priority: todo.priority,
+    });
+    setFormModalOpen(true);
+  };
+
+  const handleEditTodo = async (todoId) => {
+    try {
+      await todoServices.updateTodo(todoId, {
+        title: formData.title,
+        description: formData.description,
+        dueDate: formData.dueDate,
+        priority: formData.priority,
+      });
+      setFormModalOpen(false);
+      setFormData({
+        title: "",
+        description: "",
+        dueDate: "",
+        priority: "Medium",
+      });
+      fetchSelectedDateTodo();
+    } catch (error) {
+      console.error("Error updating todo:", error);
+    }
+  };
+
   const handleAddConclusion = async (todoId) => {
     try {
       await todoServices.updateTodo(todoId, {
         conclusion,
-        status: "Conclusion",
       });
       setConclusion("");
       setIsAddingConclusion(false);
@@ -46,7 +77,6 @@ const Todo = () => {
     try {
       await todoServices.updateTodo(todoId, {
         remark,
-        status: "Remark",
       });
       setRemark("");
       setIsAddingRemark(false);
@@ -79,7 +109,6 @@ const Todo = () => {
     const [dateTodos, setDateTodos] = useState({});
     const [todo, setTodo] = useState({});
     const [incompleteTodos, setIncompleteTodos] = useState({});
-
 
     const getDates = useMemo(() => {
       const dates = [];
@@ -115,10 +144,13 @@ const Todo = () => {
             );
             const todos = response.data;
             todosData[formattedDate] = todos.length;
-  
+
             // Count only incomplete todos
-            const incompleteCount = todos.filter(todo => !todo.conclusion).length;
-            incompleteData[formattedDate] = incompleteCount;            setTodo(response.data)
+            const incompleteCount = todos.filter(
+              (todo) => !todo.conclusion
+            ).length;
+            incompleteData[formattedDate] = incompleteCount;
+            setTodo(response.data);
           } catch (error) {
             console.error(`Error fetching todos for ${formattedDate}`, error);
             todosData[formattedDate] = 0;
@@ -174,28 +206,24 @@ const Todo = () => {
                   </div>
 
                   {todoCount > 0 && (
-                    <div
-                      className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-green-400"
-                    >
+                    <div className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-green-400">
                       <p className=" cursor-pointer peer">{todoCount}</p>
-                      <p className="w-[100px] p-1 bg-gray-300 z-1 absolute left-4 top-4 rounded-2xl invisible peer-hover:opacity-100 peer-hover:visible transition-all">Total todo</p>
-
+                      <p className="w-[100px] p-1 bg-gray-300 z-1 absolute left-4 top-4 rounded-2xl invisible peer-hover:opacity-100 peer-hover:visible transition-all">
+                        Total todo
+                      </p>
                     </div>
                   )}
-  
+
                   {/* Red Circle - Incomplete Todos */}
                   {incompleteCount > 0 && (
-                    <div
-                      className="absolute bottom-0 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-red-300"
-                    >
+                    <div className="absolute bottom-0 -right-2 w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium bg-red-300">
                       <p className=" cursor-pointer peer">{incompleteCount}</p>
-                      <p className="w-[100px] p-1 bg-gray-300 z-1 absolute left-4 -top-4 rounded-2xl invisible peer-hover:opacity-100 peer-hover:visible transition-all">incomplete todo</p>
+                      <p className="w-[100px] p-1 bg-gray-300 z-1 absolute left-4 -top-4 rounded-2xl invisible peer-hover:opacity-100 peer-hover:visible transition-all">
+                        incomplete todo
+                      </p>
                     </div>
                   )}
                 </div>
-
-                
-                
               </button>
             );
           })}
@@ -262,7 +290,6 @@ const Todo = () => {
                         <span className="font-medium text-gray-900">
                           {todo.title}
                         </span>
-                        
                       </div>
                       <p className="text-sm text-gray-600">
                         {todo.description}
@@ -273,17 +300,17 @@ const Todo = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                  <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            todo.priority === "High"
-                              ? "bg-red-100 text-red-700"
-                              : todo.priority === "Medium"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {todo.priority}
-                        </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        todo.priority === "High"
+                          ? "bg-red-100 text-red-700"
+                          : todo.priority === "Medium"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {todo.priority}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     {editingTodoId === todo._id && isAddingConclusion ? (
@@ -317,7 +344,14 @@ const Todo = () => {
                     ) : (
                       <div>
                         {todo.conclusion ? (
-                          <p className="text-sm text-gray-600 flex gap-2">
+                          <p
+                            className="text-sm text-gray-600 flex gap-2 cursor-pointer"
+                            onClick={() => {
+                              setEditingTodoId(todo._id);
+                              setIsAddingConclusion(true);
+                              setConclusion(todo.conclusion);
+                            }}
+                          >
                             {todo.conclusion} <Pencil size={18} />
                           </p>
                         ) : (
@@ -366,7 +400,16 @@ const Todo = () => {
                     ) : (
                       <div>
                         {todo.remark ? (
-                          <p className="text-sm text-gray-600 flex gap-2">{todo.remark}<Pencil size={18}/></p>
+                          <p
+                            className="text-sm text-gray-600 flex gap-2 cursor-pointer"
+                            onClick={() => {
+                              setEditingTodoId(todo._id);
+                              setIsAddingRemark(true);
+                              setRemark(todo.remark);
+                            }}
+                          >
+                            {todo.remark} <Pencil size={18} />
+                          </p>
                         ) : (
                           <button
                             onClick={() => {
@@ -382,7 +425,12 @@ const Todo = () => {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <Pencil size={18} /></td>
+                    <Pencil
+                      size={18}
+                      className="cursor-pointer"
+                      onClick={() => handleEditClick(todo)}
+                    />
+                  </td>
                 </tr>
               ))}
               {todos.length === 0 && (
@@ -406,8 +454,13 @@ const Todo = () => {
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
+                  setIsSubmitting(true);
                   try {
-                    await todoServices.createTodo(formData);
+                    if (editingTodoId) {
+                      await handleEditTodo(editingTodoId);
+                    } else {
+                      await todoServices.createTodo(formData);
+                    }
                     setFormModalOpen(false);
                     setFormData({
                       title: "",
@@ -415,9 +468,12 @@ const Todo = () => {
                       dueDate: "",
                       priority: "Medium",
                     });
+                    setEditingTodoId(null);
                     fetchSelectedDateTodo();
                   } catch (error) {
-                    console.error("Error creating todo:", error);
+                    console.error("Error with todo:", error);
+                  } finally {
+                    setIsSubmitting(false);
                   }
                 }}
                 className="space-y-4"
@@ -483,9 +539,16 @@ const Todo = () => {
                 <div className="flex space-x-3 pt-2">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
-                    Create
+                    {isSubmitting
+                      ? editingTodoId
+                        ? "Updating..."
+                        : "Creating..."
+                      : editingTodoId
+                      ? "Update"
+                      : "Create"}
                   </button>
                   <button
                     type="button"

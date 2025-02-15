@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEdit, FaTrash, FaSearch, FaCalendarAlt } from "react-icons/fa";
+import { FaBell, FaTrash, FaSearch, FaCalendarAlt } from "react-icons/fa";
 import {
   deleteReminder,
   getRemindersByDateRange,
 } from "../../services/reminderServices";
 import { toast } from "react-toastify";
+import NotePopup from "../StickyNotePopup/NotePopup";
 
 const ReminderList = () => {
   const [reminders, setReminders] = useState([]);
@@ -14,6 +15,14 @@ const ReminderList = () => {
     startDateTime: new Date().toISOString().split("T")[0],
     endDateTime: new Date().toISOString().split("T")[0],
   });
+
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [noteType, setNoteType] = useState("reminder"); // or 'meeting'
+
+  const openPopup = (type) => {
+    setNoteType(type);
+    setIsPopupOpen(true);
+  };
 
   const navigate = useNavigate();
 
@@ -182,6 +191,12 @@ const ReminderList = () => {
                       >
                         <FaTrash size={14} />
                       </button>
+                      <button
+                        onClick={() => openPopup("reminder")}
+                        className="text-yellow-500 p-2 rounded-md mr-4"
+                      >
+                        <FaBell size={20} /> {/* Reminder Icon */}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -190,6 +205,11 @@ const ReminderList = () => {
           </table>
         </div>
       </div>
+      <NotePopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        type={noteType}
+      />
     </div>
   );
 };
