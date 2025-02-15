@@ -81,8 +81,7 @@ const EmployeeTasks = () => {
 
   return (
     <div>
-                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
-      
+       <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />      
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Task Management

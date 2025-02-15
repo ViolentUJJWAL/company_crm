@@ -63,7 +63,7 @@ const Contacts = () => {
   // };
 
   const fetchContacts = async () => {
-    try {
+      try {
       setLoading(true);
       const response = await contactServices.getContacts({
         search: searchTerm,
@@ -86,13 +86,17 @@ const Contacts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    toast.loading(
+      selectedContact ? "Updating contact..." : "Adding new contact...",
+      
+    );
     try {
       if (selectedContact) {
         await contactServices.updateContact(selectedContact._id, formData);
-        toast.success("Contact updated successfully", "success");
+        toast.success("Contact updated successfully");
       } else {
         await contactServices.addContact(formData);
-        toast.success("Contact added successfully", "success");
+        toast.success("Contact added successfully");
       }
       setModalOpen(false);
       setSelectedContact(null);

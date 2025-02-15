@@ -17,8 +17,8 @@ const EventSection = () => {
       : events.filter((event) => event.type === filter);
 
   return (
-    <div className="w-[400px] h-[350px] overflow-y-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Events</h2>
+    <div className="w-[400px] h-[350px] overflow-y-auto px-6 py-2 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Events</h2>
 
       {/* Filter Buttons */}
       <div className="flex space-x-3 mb-6">

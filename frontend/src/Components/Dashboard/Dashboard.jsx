@@ -6,6 +6,7 @@ import StickyNotes from "./page/StickyNotes";
 import LeadsStatus from "./page/LeadsStatus";
 import LeadSourceChart from "./page/LeadsSource";
 import Calendar from "./page/Calendar";
+import EmployeeList from "./page/EmployData";
 
 function Dashboard() {
   return (
@@ -14,7 +15,8 @@ function Dashboard() {
 
       <div className="flex justify-between">
         <LeadSection />
-        <TaskSection />
+        {/* <TaskSection /> */}
+        <EmployeeList />
         <EventSection />
       </div>
       <div className="mt-10">
