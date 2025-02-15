@@ -58,19 +58,21 @@ const StickyNotes = () => {
           return (
             <StickyBox
               key={note._id}
-              className="w-48 p-2 shadow-md rounded"
-              style={{ backgroundImage: `url(${stickyNotesBG})` }}
+              className="w-[150px] h-[150px] p-2 shadow-md rounded"
+              style={{ backgroundImage: `url(${stickyNotesBG})`,
+              backgroundSize: "150px 150px"
+             }}
             >
               <div className="flex justify-between items-center">
-                <p className="w-[80px] rounded-2xl text-[12px] font-bold bg-gray-100 p-1 text-center">
+                <p className=" px-2 rounded-2xl text-[10px] font-bold bg-gray-100 p-1 text-center">
                   {note.type.charAt(0).toUpperCase() + note.type.slice(1)}
                 </p>
                 <p className="" onClick={() => deleteNote(note._id)}>
                   <Trash2 size={16} />
                 </p>
               </div>
-              <h1 className="font-bold">{title}</h1>
-              <p>{description}</p>
+              <h1 className="font-bold text-[15px]">{title}</h1>
+              <p className=" text-[12px]">{description}</p>
             </StickyBox>
           );
         })}

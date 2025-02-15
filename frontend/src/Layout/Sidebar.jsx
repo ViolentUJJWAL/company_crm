@@ -9,12 +9,12 @@ import {
   MessageSquare,
   Filter,
   Bell,
-  LogOut,
+  LogOut,Menu, X,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import authServices from "../services/authServices"; // Import the logout service
 
-const Sidebar = ({ isOpen }) => {
+const Sidebar = ({ isOpen, isSidebarOpen, setSidebarOpen }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -60,10 +60,16 @@ const Sidebar = ({ isOpen }) => {
   return (
     <aside
       className={`fixed left-0 top-14 h-[calc(100vh-4rem)] bg-white shadow-lg transition-all duration-300 z-20 
-      flex flex-col justify-between 
+      flex flex-col 
       ${isOpen ? "w-48" : "w-15"}`}
     >
-      <div className="flex flex-col py-4">
+      <button
+              onClick={() => setSidebarOpen(!isSidebarOpen)}
+              className=" w-[40px] text-black py-3 px-2 mt-3 ml-3 cursor-pointer bg-gray-200 rounded-lg border border-gray-500 hover:bg-gray-300"
+            >
+              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+      <div className="flex flex-col">
         {menuItems.map((item, index) => (
           <button
             onClick={() => handleNavigation(item.navigate)}
