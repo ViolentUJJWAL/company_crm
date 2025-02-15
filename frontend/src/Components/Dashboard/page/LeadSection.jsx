@@ -1,15 +1,20 @@
 import React, { useState } from "react";
 
-const LeadSection = () => {
+const LeadSection = ({ leads }) => {
   const [filter, setFilter] = useState("all");
 
-  const leads = [
-    { id: 1, name: "Lead 1", status: "new" },
-    { id: 2, name: "Lead 2", status: "processing" },
-    { id: 3, name: "Lead 3", status: "close-by" },
-  ];
+  // Map leads to required format
+  const formattedLeads =
+    leads?.map((lead) => ({
+      id: lead._id,
+      name: lead.contact?.name || "Unknown",
+      status: lead.status,
+    })) || [];
 
-  const filteredLeads = filter === "all" ? leads : leads.filter((lead) => lead.status === filter);
+  const filteredLeads =
+    filter === "all"
+      ? formattedLeads
+      : formattedLeads.filter((lead) => lead.status.toLowerCase() === filter);
 
   return (
     <div className="w-[400px] h-[350px] overflow-y-auto p-6 bg-white rounded-lg shadow-md">
@@ -18,7 +23,9 @@ const LeadSection = () => {
         <button
           onClick={() => setFilter("all")}
           className={`px-4 py-2 rounded-full text-sm font-medium ${
-            filter === "all" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+            filter === "all"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-gray-700"
           }`}
         >
           All
@@ -26,37 +33,46 @@ const LeadSection = () => {
         <button
           onClick={() => setFilter("new")}
           className={`px-4 py-2 rounded-full text-sm font-medium ${
-            filter === "new" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
+            filter === "new"
+              ? "bg-green-500 text-white"
+              : "bg-gray-200 text-gray-700"
           }`}
         >
           New
         </button>
         <button
-          onClick={() => setFilter("processing")}
+          onClick={() => setFilter("contacted")}
           className={`px-4 py-2 rounded-full text-sm font-medium ${
-            filter === "processing" ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-700"
+            filter === "contacted"
+              ? "bg-yellow-500 text-white"
+              : "bg-gray-200 text-gray-700"
           }`}
         >
-          Processing
+          Contacted
         </button>
         <button
-          onClick={() => setFilter("close-by")}
+          onClick={() => setFilter("closed")}
           className={`px-4 py-2 rounded-full text-sm font-medium ${
-            filter === "close-by" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-700"
+            filter === "closed"
+              ? "bg-red-500 text-white"
+              : "bg-gray-200 text-gray-700"
           }`}
         >
-          Close-by
+          Closed
         </button>
       </div>
       <ul className="space-y-3">
         {filteredLeads.map((lead) => (
-          <li key={lead.id} className="p-4 bg-gray-50 rounded-lg flex justify-between items-center">
+          <li
+            key={lead.id}
+            className="p-4 bg-gray-50 rounded-lg flex justify-between items-center"
+          >
             <span className="text-gray-700">{lead.name}</span>
             <span
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                lead.status === "new"
+                lead.status.toLowerCase() === "new"
                   ? "bg-green-100 text-green-700"
-                  : lead.status === "processing"
+                  : lead.status.toLowerCase() === "contacted"
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-red-100 text-red-700"
               }`}

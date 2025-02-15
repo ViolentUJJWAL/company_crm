@@ -9,21 +9,21 @@ const TaskSection = () => {
   //   ];
   const [tasks, setTasks] = useState([]);
 
-  const fetchTasks = async () => {
-    try {
-      const data = await taskServices.getMyTasks();
-      if (Array.isArray(data.tasks)) {
-        setTasks(data.tasks);
-      } else {
-        console.warn("⚠ Invalid Response:", data);
-      }
-    } catch (error) {
-      console.error("❌ Error fetching tasks:", error);
-    }
-  };
+  // const fetchTasks = async () => {
+  //   try {
+  //     const data = await taskServices.getMyTasks();
+  //     if (Array.isArray(data.tasks)) {
+  //       setTasks(data.tasks);
+  //     } else {
+  //       console.warn("⚠ Invalid Response:", data);
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Error fetching tasks:", error);
+  //   }
+  // };
 
   useEffect(() => {
-    fetchTasks();
+    // fetchTasks();
   }, []);
 
   return (
@@ -32,7 +32,7 @@ const TaskSection = () => {
       <ul>
         {tasks.map((task) => (
           <li
-            key={task.id || task._id}
+            key={task._id || task._id}
             className="p-2 bg-gray-100 rounded mb-2"
           >
             <span className="text-xl">{task.title}</span>-<span className="text-gray-600">{new Date(task.dueDate).toLocaleDateString()}</span>

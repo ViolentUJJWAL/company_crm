@@ -1,45 +1,142 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { red } from '@mui/material/colors';
-import { blue } from '@mui/material/colors';
-import { green } from '@mui/material/colors';
-
+import { red, blue, green, purple, orange } from "@mui/material/colors";
+import { getCalendarData } from "../../../services/dashboardServices";
 
 const localizer = momentLocalizer(moment);
 const label = { inputProps: { "aria-label": "Checkbox demo" } };
 
-const events = [
-  {id: 1,title: "Meeting with Adit",start: new Date(2025, 1, 1, 16, 45),end: new Date(2025, 1, 1, 17, 30),type: "meeting",},
-  {id: 1,title: "Meeting with Adit",start: new Date(2025, 1, 1, 16, 45),end: new Date(2025, 1, 1, 17, 30),type: "meeting",},  
-  {id: 5,title: "Meeting with Adit",start: new Date(2025, 2, 11, 16, 45),end: new Date(2025, 2, 11, 17, 30),type: "meeting",},
-  {id: 2,title: "Weekly Meeting",start: new Date(2025, 1, 5, 12, 50),end: new Date(2025, 1, 5, 14, 0),type: "meeting",},
-  {id: 3,title: "Client - Bhakti M",start: new Date(2025, 1, 6, 11, 0),end: new Date(2025, 1, 6, 12, 0),type: "lead",},
-  {id: 4,title: "Domain + Hosting",start: new Date(2025, 1, 10, 12, 0),end: new Date(2025, 1, 10, 13, 0),type: "reminder",},
-];
-
+// Event type colors
 const eventColors = {
-  meeting: "#3B82F6", // Blue
-  lead: "#10B981", // Green
-  reminder: "#EF4444", // Red
+  meeting: "#3B82F6",
+  lead: "#10B981",
+  task: "#EF4444",
+  todo: "#9333EA",
+  reminder: "#F59E0B",
 };
 
 const MyCalendar = () => {
   const [selectedFilters, setSelectedFilters] = useState([
     "meeting",
     "lead",
+    "task",
+    "todo",
     "reminder",
-  ]); 
+  ]);
+  const [events, setEvents] = useState([]);
+
+  // Function to transform API data into calendar events
+  const transformData = (data) => {
+    let transformedEvents = [];
+
+    // Transform meetings
+    if (data.meetings) {
+      transformedEvents.push(
+        ...data.meetings.map((meeting) => ({
+          id: meeting._id,
+          title: meeting.title,
+          start: new Date(meeting.scheduledTime),
+          end: new Date(moment(meeting.scheduledTime).add(1, "hour")), // Assuming 1 hour duration
+          type: "meeting",
+        }))
+      );
+    }
+
+    // Transform leads with followUps
+    if (data.leads) {
+      data.leads.forEach((lead) => {
+        lead.followUps.forEach((followUp) => {
+          transformedEvents.push({
+            id: `${lead._id}-${followUp.sequence}`,
+            title: `Lead: ${lead.title}`,
+            start: new Date(followUp.date),
+            end: new Date(moment(followUp.date).add(1, "hour")),
+            type: "lead",
+          });
+        });
+      });
+    }
+
+    // Transform tasks
+    if (data.tasks) {
+      transformedEvents.push(
+        ...data.tasks.map((task) => ({
+          id: task._id,
+          title: `Task: ${task.title}`,
+          start: new Date(task.dueDate),
+          end: new Date(moment(task.dueDate).add(1, "hour")),
+          type: "task",
+        }))
+      );
+    }
+
+    // Transform todos
+    if (data.todos) {
+      transformedEvents.push(
+        ...data.todos.map((todo) => ({
+          id: todo._id,
+          title: `Todo: ${todo.title}`,
+          start: new Date(todo.dueDate),
+          end: new Date(moment(todo.dueDate).add(1, "hour")),
+          type: "todo",
+        }))
+      );
+    }
+
+    // Transform reminders
+    if (data.reminders) {
+      transformedEvents.push(
+        ...data.reminders.map((reminder) => ({
+          id: reminder._id,
+          title: `Reminder: ${reminder.message}`,
+          start: new Date(reminder.dateTime),
+          end: new Date(moment(reminder.dateTime).add(1, "hour")),
+          type: "reminder",
+        }))
+      );
+    }
+
+    return transformedEvents;
+  };
+
+  // Fetch calendar data
+  const fetchCalendarData = async (start, end) => {
+    try {
+      const response = await getCalendarData(
+        moment(start).format("YYYY-MM-DD"),
+        moment(end).format("YYYY-MM-DD")
+      );
+      const transformedEvents = transformData(response.data);
+      setEvents(transformedEvents);
+    } catch (error) {
+      console.error("Error fetching calendar data:", error);
+    }
+  };
+
+  // Handle range change
+  const handleRangeChange = (range) => {
+    const [start, end] = Array.isArray(range)
+      ? range
+      : [range.start, range.end];
+    fetchCalendarData(start, end);
+  };
+
+  useEffect(() => {
+    // Initial fetch for current month
+    const start = moment().startOf("month").toDate();
+    const end = moment().endOf("month").toDate();
+    fetchCalendarData(start, end);
+  }, []);
 
   const toggleFilter = (filter) => {
-    setSelectedFilters(
-      (prev) =>
-        prev.includes(filter)
-          ? prev.filter((item) => item !== filter) // Remove if already selected
-          : [...prev, filter] // Add if not selected
+    setSelectedFilters((prev) =>
+      prev.includes(filter)
+        ? prev.filter((item) => item !== filter)
+        : [...prev, filter]
     );
   };
 
@@ -48,7 +145,7 @@ const MyCalendar = () => {
   );
 
   const eventStyleGetter = (event) => {
-    const backgroundColor = eventColors[event.type] || "#6B7280"; // Default gray
+    const backgroundColor = eventColors[event.type] || "#6B7280";
     return {
       style: {
         backgroundColor,
@@ -62,10 +159,8 @@ const MyCalendar = () => {
   return (
     <div className="h-[70vh] my-10">
       <div className="flex">
-        {/* Sidebar */}
         <div className="w-1/5 bg-gray-200 p-5 mb-4 flex flex-col">
           <h2 className="text-xl font-bold mb-4">Filters</h2>
-
           <FormControlLabel
             label="Meetings"
             control={
@@ -76,9 +171,11 @@ const MyCalendar = () => {
                 checked={selectedFilters.includes("meeting")}
                 sx={{
                   color: blue[800],
-                  '&.Mui-checked': {
+                  "&.Mui-checked": {
                     color: blue[600],
-                  },}}               />
+                  },
+                }}
+              />
             }
           />
           <FormControlLabel
@@ -91,13 +188,49 @@ const MyCalendar = () => {
                 checked={selectedFilters.includes("lead")}
                 sx={{
                   color: green[800],
-                  '&.Mui-checked': {
+                  "&.Mui-checked": {
                     color: green[600],
-                  },}}               />
+                  },
+                }}
+              />
             }
           />
           <FormControlLabel
-            label="Reminder"
+            label="Tasks"
+            control={
+              <Checkbox
+                {...label}
+                defaultChecked
+                onChange={() => toggleFilter("task")}
+                checked={selectedFilters.includes("task")}
+                sx={{
+                  color: red[800],
+                  "&.Mui-checked": {
+                    color: red[600],
+                  },
+                }}
+              />
+            }
+          />
+          <FormControlLabel
+            label="Todos"
+            control={
+              <Checkbox
+                {...label}
+                defaultChecked
+                onChange={() => toggleFilter("todo")}
+                checked={selectedFilters.includes("todo")}
+                sx={{
+                  color: purple[800],
+                  "&.Mui-checked": {
+                    color: purple[600],
+                  },
+                }}
+              />
+            }
+          />
+          <FormControlLabel
+            label="Reminders"
             control={
               <Checkbox
                 {...label}
@@ -105,15 +238,16 @@ const MyCalendar = () => {
                 onChange={() => toggleFilter("reminder")}
                 checked={selectedFilters.includes("reminder")}
                 sx={{
-                  color: red[800],
-                  '&.Mui-checked': {
-                    color: red[600],
-                  },}}              />
+                  color: orange[800],
+                  "&.Mui-checked": {
+                    color: orange[600],
+                  },
+                }}
+              />
             }
           />
         </div>
 
-        {/* Calendar Section */}
         <div className="w-4/5 p-5">
           <h2 className="text-2xl font-bold text-center mb-4">
             Event Calendar
@@ -128,6 +262,7 @@ const MyCalendar = () => {
             defaultView="month"
             className="rounded-lg shadow-md"
             eventPropGetter={eventStyleGetter}
+            onRangeChange={handleRangeChange}
           />
         </div>
       </div>

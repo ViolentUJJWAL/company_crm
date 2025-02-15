@@ -15,6 +15,20 @@ export const addStickyNote = async (noteData) => {
   }
 };
 
+export const getStickyNotes = async () => {
+  try {
+    const response = await api.get("/sticky-note/all");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching sticky note:", error);
+    throw (
+      error.response?.data || {
+        message: "An error occurred while fetching the sticky note",
+      }
+    );
+  }
+};
+
 // 📌 **Delete a Sticky Note**
 export const deleteStickyNote = async (noteId) => {
   try {

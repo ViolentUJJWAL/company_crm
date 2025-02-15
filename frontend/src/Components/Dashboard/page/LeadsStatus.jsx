@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-const LeadStatusChart = () => {
-  const leadStatusData = [
-    { id: 1, status: "New", date: "2025-02-01" },
-    { id: 2, status: "Processing", date: "2025-02-02" },
-    { id: 3, status: "Close-by", date: "2025-02-05" },
-    { id: 4, status: "New", date: "2025-02-10" },
-    { id: 5, status: "Processing", date: "2025-02-15" },
-    { id: 6, status: "Close-by", date: "2025-02-20" },
-  ];
-
+const LeadStatusChart = ({ statusStats }) => {
   const currentDate = new Date();
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+  const firstDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  )
     .toISOString()
     .split("T")[0];
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+  const lastDayOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  )
     .toISOString()
     .split("T")[0];
 
@@ -24,29 +30,22 @@ const LeadStatusChart = () => {
   const [filteredData, setFilteredData] = useState([]);
 
   const filterDataByDateRange = () => {
-    const filtered = leadStatusData.filter((item) => {
-      const itemDate = new Date(item.date);
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      return itemDate >= start && itemDate <= end;
-    });
+    if (!statusStats) return;
 
-    const aggregatedData = filtered.reduce((acc, item) => {
-      acc[item.status] = (acc[item.status] || 0) + 1;
-      return acc;
-    }, {});
-
-    const pieChartData = Object.keys(aggregatedData).map((status) => ({
-      name: status,
-      value: aggregatedData[status],
+    // Transform the data directly from statusStats
+    const pieChartData = statusStats.map((stat) => ({
+      name: stat._id, // Using _id as name since it contains the status
+      value: stat.count, // Using count as the value
     }));
 
     setFilteredData(pieChartData);
   };
 
   useEffect(() => {
-    filterDataByDateRange();
-  }, []);
+    if (statusStats) {
+      filterDataByDateRange();
+    }
+  }, [statusStats]); // Update when statusStats changes
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
@@ -92,7 +91,10 @@ const LeadStatusChart = () => {
                 label
               >
                 {filteredData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
@@ -100,7 +102,9 @@ const LeadStatusChart = () => {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-gray-500 text-center">No leads found for the selected date range.</p>
+          <p className="text-gray-500 text-center">
+            No leads found for the selected date range.
+          </p>
         )}
       </div>
     </div>

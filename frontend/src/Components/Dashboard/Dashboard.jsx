@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import LeadSection from "./page/LeadSection";
 import TaskSection from "./page/TaskSection";
 import EventSection from "./page/EventSection";
@@ -6,23 +6,64 @@ import StickyNotes from "./page/StickyNotes";
 import LeadsStatus from "./page/LeadsStatus";
 import LeadSourceChart from "./page/LeadsSource";
 import Calendar from "./page/Calendar";
+import { getDashboardData } from "../../services/dashboardServices";
 
 function Dashboard() {
+  const [dashboardData, setDashboardData] = useState({
+    latestLeads: [],
+    todayMeetings: [],
+    activeReminders: [],
+    chartData: {
+      statusStats: [],
+      sourceStats: [],
+      forStats: [],
+    },
+  });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await getDashboardData();
+
+        if (response.data) {
+          setDashboardData({
+            latestLeads: response.data.latestLeads || [],
+            todayMeetings: response.data.todayMeetings || [],
+            activeReminders: response.data.activeReminders || [],
+            chartData: response.data.chartDate || {
+              statusStats: [],
+              sourceStats: [],
+              forStats: [],
+            },
+          });
+          console.log("dashboardData.chartData", dashboardData.chartData);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   return (
     <div>
-      <h1 className=" text-3xl font-bold mb-10">Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-10">Dashboard</h1>
 
       <div className="flex justify-between">
-        <LeadSection />
+        <LeadSection leads={dashboardData.latestLeads} />
         <TaskSection />
-        <EventSection />
+        <EventSection
+          meetings={dashboardData.todayMeetings}
+          reminders={dashboardData.activeReminders}
+        />
       </div>
       <div className="mt-10">
         <StickyNotes />
       </div>
       <div className="flex justify-between gap-1 mt-10">
-        <LeadsStatus />
-        <LeadSourceChart />
+        <LeadsStatus statusStats={dashboardData.chartData.statusStats} />
+        <LeadSourceChart sourceStats={dashboardData.chartData.sourceStats} />
       </div>
       <div>
         <Calendar />
