@@ -61,7 +61,7 @@ const LeadStatusLabel = () => {
       console.log("response.data", response.data);
       setStatusLabels(response.data);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +103,7 @@ const LeadStatusLabel = () => {
       setLabelName("");
       fetchStatusLabels();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }

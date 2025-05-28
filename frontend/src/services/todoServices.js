@@ -34,6 +34,16 @@ export const todoServices = {
     }
   },
 
+  getTeamTodos: async () => {
+    try {
+      const response = await api.get("/todo/team-todo");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all todos:", error);
+      throw error;
+    }
+  },
+
   getTodos: async (queryString = "") => {
     try {
       const response = await api.get(

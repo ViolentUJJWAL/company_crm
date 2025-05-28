@@ -38,6 +38,7 @@ const authServices = {
       const response = await api.post("/auth/login", credentials);
       return response.data;
     } catch (error) {
+      console.log(error)
       throw error.response ? error.response.data : error.message;
     }
   },
@@ -51,7 +52,7 @@ const authServices = {
     }
   },
 
-  getProfile: async () => {
+   getProfile: async () => {
     try {
       const response = await api.get("/auth/profile");
       return response.data;

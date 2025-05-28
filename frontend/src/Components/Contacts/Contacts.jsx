@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import contactServices from "../../services/contactServices";
+import { ToastContainer, toast } from "react-toastify";
+
 import {
   Search,
   Plus,
@@ -11,6 +13,7 @@ import {
   Globe,
   Edit2,
   X,
+  Eye,
 } from "lucide-react";
 
 // Toggle Switch Component
@@ -42,7 +45,8 @@ const Contacts = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [alert, setAlert] = useState({ show: false, message: "", type: "" });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -55,10 +59,10 @@ const Contacts = () => {
     },
   });
 
-  const showAlert = (message, type) => {
-    setAlert({ show: true, message, type });
-    setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
-  };
+  // const showAlert = (message, type) => {
+  //   setAlert({ show: true, message, type });
+  //   setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
+  // };
 
   const fetchContacts = async () => {
     try {
@@ -69,10 +73,22 @@ const Contacts = () => {
         page: currentPage,
         limit: 10,
       });
+
+      console.log(response);
+      // Check if response is empty or contains no contacts
+      if (!response?.contacts || response.contacts.length === 0) {
+        // setA([]);
+        setContacts([]); // ✅ Ensure `leads` is an array
+        toast.warn("No Contact available");
+        return;
+      }
+
+      // Set the data if available
       setContacts(response.contacts);
+
       setTotalPages(response.totalPages);
     } catch (error) {
-      showAlert("Failed to fetch contacts", "error");
+      toast.error(error || "Failed to fetch contacts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -84,30 +100,33 @@ const Contacts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       if (selectedContact) {
         await contactServices.updateContact(selectedContact._id, formData);
-        showAlert("Contact updated successfully", "success");
+        toast.success("Contact updated successfully");
       } else {
         await contactServices.addContact(formData);
-        showAlert("Contact added successfully", "success");
+        toast.success("Contact added successfully");
       }
       setModalOpen(false);
       setSelectedContact(null);
       resetForm();
       fetchContacts();
     } catch (error) {
-      showAlert("Error saving contact", "error");
+      toast.error(error.message || "Error saving contact", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleToggleClient = async (id) => {
     try {
       await contactServices.toggleClientStatus(id);
-      showAlert("Status updated successfully", "success");
+      toast.success("Status updated successfully", "success");
       fetchContacts();
     } catch (error) {
-      showAlert("Error updating status", "error");
+      toast.error(error.message || "Error updating status", "error");
     }
   };
 
@@ -126,11 +145,12 @@ const Contacts = () => {
   };
 
   const handleEdit = (contact) => {
+    console.log("contact", contact);
     setSelectedContact(contact);
     setFormData({
       name: contact.name,
-      email: contact.email,
-      phoneNo: contact.phoneNo || "",
+      email: contact.email || "",
+      phoneNo: contact.phoneNo,
       address: {
         country: contact.address?.country || "",
         state: contact.address?.state || "",
@@ -146,10 +166,20 @@ const Contacts = () => {
     setDetailModalOpen(true);
   };
 
+  const sortedContacts = useMemo(() => {
+    return [...contacts].sort((a, b) => a.name.localeCompare(b.name));
+  }, [contacts]);
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
+
       {/* Alert */}
-      {alert.show && (
+      {/* {alert.show && (
         <div
           className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
             alert.type === "success"
@@ -159,7 +189,7 @@ const Contacts = () => {
         >
           {alert.message}
         </div>
-      )}
+      )} */}
 
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
@@ -208,66 +238,119 @@ const Contacts = () => {
         </div>
       </div>
 
-      {/* Contacts Grid */}
+      {/* Contacts Table */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex justify-center items-center h-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {contacts.map((contact) => (
-            <div
-              key={contact._id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => openDetailModal(contact)}
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">
-                      {contact.name}
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-1">
-                      {contact.email}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(contact);
-                    }}
-                    className="text-gray-400 hover:text-blue-600 transition-colors"
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-full bg-white">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  S. No.
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Name
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Email
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Phone
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Type
+                </th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {[...contacts] // Create a shallow copy to avoid mutating the original array
+                .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                .map((contact, index) => (
+                  <tr
+                    key={contact._id}
+                    // onClick={() => openDetailModal(contact)}
+                    className="hover:bg-gray-50 transition-colors"
                   >
-                    <Edit2 size={18} />
-                  </button>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600 mb-4">
-                  <Phone size={16} />
-                  <span>{contact.phoneNo || "No phone"}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <ToggleSwitch
-                      checked={contact.isClient}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleToggleClient(contact._id);
-                      }}
-                    />
-                    <span className="text-sm text-gray-600">
-                      {contact.isClient ? "Client" : "Contact"}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {index+1}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {contact.name}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">
+                        {contact.email}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Phone size={14} />
+                        <span>{contact.phoneNo || "No phone"}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex items-center gap-2"
+                      >
+                        <ToggleSwitch
+                          checked={contact.isClient}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleToggleClient(contact._id);
+                          }}
+                        />
+                        <span className="text-sm text-gray-600">
+                          {contact.isClient ? "Client" : "Contact"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(contact);
+                          }}
+                          className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetailModal(contact); // Trigger detail modal
+                          }}
+                          className="text-gray-400 hover:text-green-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                        >
+                          <Eye size={16} /> {/* Eye icon for viewing details */}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          {contacts.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No contacts Available
             </div>
-          ))}
+          )}
         </div>
       )}
 
+      {/* Detail Modal */}
       {detailModalOpen && selectedContact && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl relative">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => {
                 setDetailModalOpen(false);
@@ -282,6 +365,7 @@ const Contacts = () => {
               <h2 className="text-3xl font-bold text-gray-800">
                 {selectedContact.name}
               </h2>
+              {/* <img src={selectedContact.businessCard?.url} alt={selectedContact.name} /> */}
               <div className="flex items-center gap-2 mt-2">
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${
@@ -294,6 +378,25 @@ const Contacts = () => {
                 </span>
               </div>
             </div>
+
+            {selectedContact.businessCard?.url && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Business Card
+                </h3>
+                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={selectedContact.businessCard.url}
+                    alt="Business Card"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/placeholder-image.png"; // Fallback image
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
@@ -534,9 +637,17 @@ const Contacts = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
                 >
-                  {selectedContact ? "Update" : "Add"} Contact
+                  {isSubmitting
+                    ? selectedContact
+                      ? "Updating..."
+                      : "Adding..."
+                    : selectedContact
+                    ? "Update"
+                    : "Add"}{" "}
+                  Contact
                 </button>
               </div>
             </form>

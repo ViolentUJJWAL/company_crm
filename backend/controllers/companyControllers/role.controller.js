@@ -1,3 +1,5 @@
+const Company = require("../../models/company.model");
+const Employee = require("../../models/employee.model");
 const Role = require("../../models/role.model");
 
 // ✅ Create a new role
@@ -14,7 +16,11 @@ exports.createRole = async (req, res) => {
     }
 
     for (const module in permissions) {
-      if (permissions[module].create || permissions[module].update || permissions[module].delete) {
+      if (
+        permissions[module].create ||
+        permissions[module].update ||
+        permissions[module].delete
+      ) {
         permissions[module].read = true; // Auto-grant read permission
       }
     }
@@ -75,13 +81,11 @@ exports.getRoleById = async (req, res) => {
     return res.status(200).json({ data: roles });
   } catch (error) {
     console.error("Error fetching roles:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -112,22 +116,18 @@ exports.updateRole = async (req, res) => {
     updatedRole.permissions = permissions;
     await updatedRole.save();
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Role updated successfully",
-        data: updatedRole,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Role updated successfully",
+      data: updatedRole,
+    });
   } catch (error) {
     console.error("Error updating role:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 
@@ -148,20 +148,16 @@ exports.toggleActiveRole = async (req, res) => {
     role.isActive = !role.isActive;
     await role.save();
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: `Role ${role.isActive ? "Active" : "Inactive"} successfully`,
-      });
+    return res.status(200).json({
+      success: true,
+      message: `Role ${role.isActive ? "Active" : "Inactive"} successfully`,
+    });
   } catch (error) {
     console.error("Error deleting role:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };

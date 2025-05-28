@@ -8,26 +8,58 @@ export default function Settings() {
       title: "Lead Settings",
       description: "Recent and commonly used settings",
       settings: [
-        { icon: "📦", title: "Lead For", link: "/lead-for" },
+        { icon: "📦", title: "Label For", link: "/lead-for" },
         { icon: "⚫", title: "Lead Source", link: "/lead-source" },
-        { icon: "💻", title: "Lead Status", link: "/lead-status-label" },
+        // { icon: "💻", title: "Lead Status", link: "/lead-status-label" },
       ],
     },
+    // {
+    //   title: "Role settings",
+    //   description: "Manage system preferences",
+    //   settings: [
+    //     { icon: "🔋", title: "Block/Unblock Role", link: "/role-settings" },
+    //   ],
+    // },
     {
-      title: "Role settings",
-      description: "Manage system preferences",
-      settings: [
-        { icon: "🔋", title: "Block/Unblock Role", link: "/role-settings" },
-      ],
-    },
-    {
-      title: "Block Employee",
-      description: "Control your privacy settings",
+      title: "Employee Settings",
+      description: "Control your Employee settings",
       settings: [
         {
           icon: "🔒",
           title: "Block/Unblock Employee",
           link: "/employee-settings",
+        },
+        {
+          icon: "✅",
+          title: "Update Employee Permissions",
+          link: "/employee-permission-settings",
+        },
+      ],
+    },
+    {
+      title: "Set Email Credentials Settings",
+      description: "Control your Email settings",
+      settings: [
+        {
+          icon: "📧",
+          title: "Set and Update Email Credentials",
+          link: "/company-email-settings",
+        },
+      ],
+    },
+    {
+      title: "Attendance Settings",
+      description: "Control your Attendance settings",
+      settings: [
+        {
+          icon: "☑️",
+          title: "Set and Update Attendance Settings",
+          link: "/attendance-settings",
+        },
+        {
+          icon: "✈️",
+          title: "Set Holidays",
+          link: "/attendance-holidays",
         },
       ],
     },

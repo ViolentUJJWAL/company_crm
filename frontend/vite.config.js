@@ -14,4 +14,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    outDir: 'build',  // Change output directory to match Vercel's expectation
+    chunkSizeWarningLimit: 1000 // Increase limit to remove chunk warning
+  }
 });

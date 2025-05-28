@@ -1,237 +1,474 @@
-import React, { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { MdDelete } from "react-icons/md";
-import { CiEdit } from "react-icons/ci";
-import { MdEmail } from "react-icons/md";
-import { FaWhatsapp, FaLink } from "react-icons/fa6";
-import { IoPersonAdd } from "react-icons/io5";
-import { FiSend } from "react-icons/fi";
-import leadsJson from './leads.json'; 
+import React, { useState, useEffect, useRef } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import {
+  addFollowUp,
+  changeLeadStatus,
+  createLead,
+  getLeadById,
+  getLeads,
+  updateLead,
+} from "../../services/leadServices";
+import LeadCard from "./LeadCard";
+import LeadDetailsModal from "./LeadDetailsModal";
+import LeadFormModal from "./LeadFormModal";
+import { ToastContainer, toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../store/slices/userSlice";
 
-const LeadCard = ({ lead }) => (
-  <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200 text-left hover:shadow-[0_8px_10px_rgba(0,0,0,0.2)] transition duration-300   ">
-    <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700">{lead.label}</span>
-    <h3 className="font-semibold text-lg mt-2">{lead.name}</h3>
-    <p className="text-gray-600">📞 {lead.phone}</p>
-    <p className="text-sm text-gray-500">CD: {lead.cd}</p>
-    <p className="text-sm text-gray-500">BY: {lead.by}</p>
-    <p className="text-sm text-gray-500">TO: {lead.to}</p>
-    <p className="text-sm text-gray-500">NFD: {lead.nfd}</p>
-    <div className="mt-2 flex space-x-2 text-gray-500">
-      <span className='cursor-pointer '><MdDelete /></span>
-      <span className='cursor-pointer '><CiEdit/></span>
-      <span className='cursor-pointer '><MdEmail  /></span>
-      <span className='cursor-pointer '><FaWhatsapp /></span>
-      <span className='cursor-pointer '><FaLink /></span>
-      <span className='cursor-pointer '><IoPersonAdd /></span>
-      <span className='cursor-pointer '><FiSend/></span>
-    </div>
-  </div>
-);
-
-function Lead() {
+const Lead = () => {
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [viewLead, setViewLead] = useState(null);
+  const searchTimeout = useRef(null);
+  const [isFollowUpModalOpen, setIsFollowUpModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [leads, setLeads] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [selectedLabel, setSelectedLabel] = useState("All Labels");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [url, setUrl] = useState("https://www.example.com");
-
-
-  const [newLead, setNewLead] = useState({
-    label: '',
-    name: '',
-    phone: '',
-    cd: '',
-    by: '',
-    to: '',
-    nfd: ''
+  const [viewMode, setViewMode] = useState("kanban");
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "",
+    assignedTo: "",
   });
-
-  const labels = ["All Labels", "Engineer", "Leader", "Graphic Designer", "Developer"];
+  const [allLeads, setAllLeads] = useState([]); // Store all leads from API
+  const [searchTerm, setSearchTerm] = useState(""); // Separate from API filters
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    leadForId: "",
+    leadSourceId: "",
+    contact: {
+      name: "",
+      email: "",
+      phoneNo: "",
+    },
+    priority: "Medium",
+    reference: {
+      name: "",
+      email: "",
+      phoneNo: "",
+    },
+    remark: "",
+    assignedTo: "",
+  });
+  const [role, setRole] = useState("");
+  const [leadsPermissions, setLeadsPermissions] = useState(null);
+  const user = useSelector(selectUser);
 
   useEffect(() => {
-    setLeads(leadsJson);
-  }, []);
+    if (user && user.company) {
+      setRole("Employee");
+      console.log("response.user.role.permissions", user.role.permissions);
+      setLeadsPermissions(user.role.permissions.leads);
+    } else if (user && user.employees) {
+      setRole("CompanyAdmin");
+    } else if (user && user.role === "SuperAdmin") {
+      setRole("SuperAdmin");
+    }
+  }, [user]);
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setNewLead({ ...newLead, [name]: value });
+  // Fetch all necessary data
+  const fetchLeads = async () => {
+    try {
+      setLoading(true);
+      const response = await getLeads({
+        status: filters.status,
+        assignedTo: filters.assignedTo,
+      });
+
+      if (!response?.data || response.data.length === 0) {
+        setAllLeads([]);
+        setLeads([]); // ✅ Ensure `leads` is an array
+        toast.warn("No leads available");
+        return;
+      }
+
+      const leads = response.data;
+      setAllLeads(leads);
+
+      // Apply frontend search filter
+      const filteredLeads = searchTerm ? filterLeads(leads, searchTerm) : leads;
+      const groupedLeads = groupLeadsByStatus(filteredLeads);
+
+      console.log("Grouped Leads:", groupedLeads); // ✅ Check data format
+
+      // ✅ Ensure we set an array
+      setLeads(Array.isArray(groupedLeads) ? groupedLeads : []);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      toast.error(error.message || "Failed to fetch leads. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    const updatedLeads = [...leads];
-    updatedLeads[0].leads.push(newLead);
-    updatedLeads[0].count += 1;
-    setLeads(updatedLeads);
-    setShowForm(false);
-    setNewLead({ label: '', name: '', phone: '', cd: '', by: '', to: '', nfd: '' });
-  };
+  useEffect(() => {
+    fetchLeads();
+  }, [filters]);
 
-  const filteredLeads = leads.map(category => ({
-    ...category,
-    leads: category.leads
-      .filter(lead => selectedLabel === "All Labels" || lead.label === selectedLabel)
-      .filter(lead =>
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.phone.includes(searchTerm) ||
-        lead.by.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.to.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-  }));
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(url).then(() => {
-      alert("URL copied to clipboard!");
-    }).catch((err) => {
-      console.error("Error copying URL: ", err);
+  const filterLeads = (leads, term) => {
+    const searchLower = term.toLowerCase();
+    return leads.filter((lead) => {
+      return (
+        // Contact info
+        lead.contact?.name?.toLowerCase().includes(searchLower) ||
+        lead.contact?.email?.toLowerCase().includes(searchLower) ||
+        lead.contact?.phoneNo?.toLowerCase().includes(searchLower) ||
+        // Reference info
+        lead.reference?.name?.toLowerCase().includes(searchLower) ||
+        lead.reference?.email?.toLowerCase().includes(searchLower) ||
+        lead.reference?.phoneNo?.toLowerCase().includes(searchLower) ||
+        // Other fields
+        lead.status?.toLowerCase().includes(searchLower) ||
+        lead.priority?.toLowerCase().includes(searchLower) ||
+        lead.source?.name?.toLowerCase().includes(searchLower) ||
+        lead.assignedTo?.user?.name?.toLowerCase().includes(searchLower) ||
+        lead.remark?.toLowerCase().includes(searchLower)
+      );
     });
   };
 
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-    
-    const sourceIndex = leads.findIndex(category => category.title === result.source.droppableId);
-    const destIndex = leads.findIndex(category => category.title === result.destination.droppableId);
-    
-    const sourceLeads = [...leads[sourceIndex].leads];
-    
-    // Move the item within the same column
-    if (sourceIndex === destIndex) {
-      const [reorderedLead] = sourceLeads.splice(result.source.index, 1);
-      sourceLeads.splice(result.destination.index, 0, reorderedLead);
-      
-      const updatedLeads = [...leads];
-      updatedLeads[sourceIndex].leads = sourceLeads;
-      setLeads(updatedLeads);
-      return;
-    }
-    
-    // Move the item to a different column
-    const destLeads = [...leads[destIndex].leads];
-    const [movedLead] = sourceLeads.splice(result.source.index, 1);
-    destLeads.splice(result.destination.index, 0, movedLead);
-    
-    const updatedLeads = [...leads];
-    updatedLeads[sourceIndex].leads = sourceLeads;
-    updatedLeads[sourceIndex].count = sourceLeads.length;
-    updatedLeads[destIndex].leads = destLeads;
-    updatedLeads[destIndex].count = destLeads.length;
-    
-    setLeads(updatedLeads);
+  const groupLeadsByStatus = (leadsData) => {
+    const statusGroups = {
+      New: {
+        title: "New",
+        leads: [],
+        color: "bg-teal-100",
+        border: "border-teal-300",
+      },
+      Contacted: {
+        title: "Contacted",
+        leads: [],
+        color: "bg-yellow-100",
+        border: "border-yellow-300",
+      },
+      Qualified: {
+        title: "Qualified",
+        leads: [],
+        color: "bg-green-100",
+        border: "border-green-300",
+      },
+      Converted: {
+        title: "Converted",
+        leads: [],
+        color: "bg-purple-100",
+        border: "border-purple-300",
+      },
+      Closed: {
+        title: "Closed",
+        leads: [],
+        color: "bg-red-100",
+        border: "border-red-300",
+      },
+    };
+
+    leadsData.forEach((lead) => {
+      if (statusGroups[lead.status]) {
+        statusGroups[lead.status].leads.push(lead);
+      }
+    });
+
+    return Object.values(statusGroups);
   };
 
-  return (
-    <DragDropContext onDragEnd={onDragEnd}>
+  const handleAddFollowUp = async (leadId, data) => {
+    try {
+      const response = await addFollowUp(leadId, data);
+      fetchLeads();
+      if (viewLead && viewLead._id === leadId) {
+        const updatedLeadResponse = await getLeadById(leadId);
+        setViewLead(updatedLeadResponse.data);
+      }
+    } catch (error) {
+      toast.error(error.message || "Error adding follow-up:");
+    }
+  };
 
-    <div className="p-6 bg-gray-100 min-h-screen w-full">
-      <div className="flex justify-between items-center mb-15">
-        <h2 className="text-2xl font-bold">Leads</h2>
-        {/* <input type="text" placeholder="Search..." className="p-2 border rounded-md" /> */}
-        <div className="flex items-center space-x-2">
-        <p className=' text-xl font-bold'>Inquiry URL</p>
-      <input
-        type="text"
-        value={url}
-        disabled
-        className="p-1 border rounded-md text-gray-700 bg-gray-100"
-      />
-      <button
-        onClick={handleCopy}
-        className="px-4 py-1 bg-blue-500 text-white rounded-md"
-      >
-        Copy URL
-      </button>
-    </div>
-        <input
-  type="text"
-  placeholder="Search Leads..."
-  value={searchTerm}
-  onChange={(e) => setSearchTerm(e.target.value)}
-  className="p-1 border rounded-md"
-/>
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
 
-      </div>
+    try {
+      const { draggableId, destination } = result;
+      await changeLeadStatus(draggableId, destination.droppableId);
 
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex space-x-2">
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-md shadow">Table View</button>
-        </div>
-        <div className='flex space-x-2'>
-          <select className="p-2 border rounded-md" onChange={(e) => setSelectedLabel(e.target.value)}>
-            {labels.map((label, index) => (
-              <option key={index} value={label}>{label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <button className="px-4 py-2 bg-purple-500 text-white rounded-md shadow" onClick={() => setShowForm(true)}>
-            + Add Lead
-          </button>
-        </div>
-      </div>
+      // Refresh leads after status change
+      const response = await getLeads(filters);
+      const groupedLeads = groupLeadsByStatus(response.data);
+      setLeads(groupedLeads);
+    } catch (error) {
+      toast.error(error.message || "Error updating lead status:");
+    }
+  };
 
-      {showForm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-md w-96">
-            <h3 className="text-xl font-semibold mb-4">Add New Lead</h3>
-            <form onSubmit={handleFormSubmit}>
-              <select name="label" value={newLead.label} onChange={handleFormChange} className="w-full p-2 mb-2 border rounded-md">
-                {labels.map((label, index) => (
-                  <option key={index} value={label}>{label}</option>
-                ))}
-              </select>
-              <input type="text" name="name" placeholder="Name" value={newLead.name} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <input type="number" name="phone" placeholder="Phone" value={newLead.phone} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <input type="date" name="cd" placeholder="CD" value={newLead.cd} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <input type="text" name="by" placeholder="By" value={newLead.by} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <input type="text" name="to" placeholder="To" value={newLead.to} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <input type="datetime-local" name="nfd" placeholder="NFD" value={newLead.nfd} onChange={handleFormChange} required className="w-full p-2 mb-2 border rounded-md" />
-              <div className='flex justify-between'>
-              <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md">Add Lead</button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-red-500 text-white rounded-md">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
+  const renderKanbanView = () => (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      {leads.length === 0 && (
+        <div className="text-center py-8 text-gray-500">No leads Available</div>
       )}
-
-      <div className="flex gap-4 justify-between h-[600px]">
-        {filteredLeads.map((column) => (
-          // <div key={column.title} className={` rounded-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
-          //   <h3 className={`font-semibold p-3 bg-gray-200 `}>{column.title} ({column.count})</h3>
-            <Droppable key={column.title} droppableId={column.title}>
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps} className={`p-1 rounded-lg shadow-md ${column.color} ${column.border} border-2 overflow-auto w-[250px]`}>
-                  <h3 className={` font-bold mb-2 rounded-sm p-3 flex justify-between ${
-                     column.title === "New"
-                     ? "bg-teal-300 " : column.title === "Processing" ? "bg-yellow-200" : column.title=== "Close-by" ? "bg-purple-300" :column.title === "Confirm" ? "bg-green-300" :"bg-red-300"
-                   
-                  }`}> <p>{column.title}</p> <div className={`w-[25px] h-[25px] rounded-3xl bg-amber-700 text-center ${
+      <div className="flex gap-2  p-4 h-[calc(100vh-200px)]">
+        {leads.map((column) => (
+          <Droppable key={column.title} droppableId={column.title}>
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className={`maincard flex flex-col h-[calc(100vh-105px)] w-60 overflow-y-auto justify-start ${column.color} rounded-lg p-1 border ${column.border}`}
+              >
+                <div
+                  className={`flex justify-between items-center mb-4 p-2 ${
                     column.title === "New"
-                    ? "bg-teal-200 " : column.title === "Processing" ? "bg-yellow-50" : column.title=== "Close-by" ? "bg-purple-200" :column.title === "Confirm" ? "bg-green-200" :"bg-red-200"
-                  
-                 } `}>{column.count}</div></h3>
+                      ? "bg-teal-300 "
+                      : column.title === "Contacted"
+                      ? "bg-yellow-300"
+                      : column.title === "Converted"
+                      ? "bg-purple-300"
+                      : column.title === "Qualified"
+                      ? "bg-green-300"
+                      : "bg-red-300"
+                  }`}
+                >
+                  <h3 className={` font-bold mb-2 flex justify-between`}>
+                    {column.title}
+                  </h3>
+                  <span className="bg-white  px-2 py-2 rounded-full text-xs">
+                    {column.leads.length}
+                  </span>
+                </div>
+                <div className="space-y-2">
                   {column.leads.map((lead, index) => (
-                    <Draggable key={lead.phone} draggableId={lead.phone} index={index}>
+                    <Draggable
+                      key={lead._id}
+                      draggableId={lead._id}
+                      index={index}
+                    >
                       {(provided) => (
-                        <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className="mb-2">
-                          <LeadCard lead={lead} />
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <LeadCard
+                            lead={lead}
+                            onLeadClick={() => setViewLead(lead)}
+                            onEditClick={(lead) => {
+                              setSelectedLead(lead);
+                              setShowForm(true);
+                            }}
+                            onFollowUpClick={(lead) => {
+                              setViewLead(lead);
+                              setIsFollowUpModalOpen(true);
+                            }}
+                            onAssignClick={(lead) => {
+                              setSelectedLead(lead);
+                              setIsAssignModalOpen(true);
+                            }}
+                          />
                         </div>
                       )}
                     </Draggable>
                   ))}
                   {provided.placeholder}
                 </div>
-              )}
-            </Droppable>       
-              //  </div>
+              </div>
+            )}
+          </Droppable>
         ))}
       </div>
-    </div>
     </DragDropContext>
-
   );
-}
+
+  const renderTableView = () => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white">
+        <thead>
+          <tr className="bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-2">Contact</th>
+            <th className="px-4 py-2">Status</th>
+            <th className="px-4 py-2">Assigned To</th>
+            <th className="px-4 py-2">Source</th>
+            <th className="px-4 py-2">Created</th>
+            <th className="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {leads
+            .flatMap((column) => column.leads)
+            .map((lead) => (
+              <tr key={lead._id} className="text-xs">
+                <td className="px-4 py-2 text-center">
+                  <div className="font-medium">{lead.contact?.name}</div>
+                  <div className="text-gray-500">{lead.contact?.phoneNo}</div>
+                </td>
+                <td className="px-4 py-2 text-center">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      lead.status === "New"
+                        ? "bg-blue-100 text-blue-800"
+                        : lead.status === "Contacted"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : lead.status === "Qualified"
+                        ? "bg-green-100 text-green-800"
+                        : lead.status === "Converted"
+                        ? "bg-purple-100 text-purple-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {lead.status}
+                  </span>
+                </td>
+                <td className="px-4 py-2 text-center">
+                  {lead.assignedTo?.user?.name || "Unassigned"}
+                </td>
+                <td className="px-4 py-2 text-center">{lead.source?.name}</td>
+                <td className="px-4 py-2 text-center">
+                  {new Date(lead.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-2 text-center">
+                  <div className="flex space-x-2 justify-center">
+                    <button
+                      onClick={() => setViewLead(lead)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedLead(lead);
+                        setShowForm(true);
+                      }}
+                      className="text-green-600 hover:text-green-800"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+      {leads.length === 0 && (
+        <div className="text-center py-8 text-gray-500">No leads Available</div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
+
+      <div className="px-6 py-4 bg-white border-b">
+        <h1 className="text-xl font-semibold mb-4">Leads</h1>
+
+        <div className="flex justify-between items-center">
+          <div className=" items-center space-x-4">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setViewMode("kanban")}
+                className={`px-3 py-1 text-sm rounded ${
+                  viewMode === "kanban"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100"
+                }`}
+              >
+                Card View
+              </button>
+              <button
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1 text-sm rounded ${
+                  viewMode === "table"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100"
+                }`}
+              >
+                Table View
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <input
+              type="text"
+              placeholder="Search clients..."
+              className="px-3 py-1 text-sm border rounded-md w-64"
+              value={searchTerm}
+              onChange={(e) => {
+                const newSearchTerm = e.target.value;
+                setSearchTerm(newSearchTerm);
+                const filteredLeads = filterLeads(allLeads, newSearchTerm);
+                const groupedLeads = groupLeadsByStatus(filteredLeads);
+                setLeads(groupedLeads);
+              }}
+            />
+          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            disabled={!(role === "CompanyAdmin" || leadsPermissions?.create)}
+            className={`px-4 py-1 text-sm  rounded-md ${
+              role === "CompanyAdmin" || leadsPermissions?.create
+                ? "bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
+                : "bg-gray-400 text-gray-200 cursor-not-allowed"
+            }`}
+          >
+            Add Lead
+          </button>
+        </div>
+      </div>
+
+      <div className="">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          </div>
+        ) : viewMode === "kanban" ? (
+          renderKanbanView()
+        ) : (
+          renderTableView()
+        )}
+      </div>
+
+      {showForm && (
+        <LeadFormModal
+          show={showForm}
+          onClose={() => setShowForm(false)}
+          onSubmit={async (formData) => {
+            try {
+              const response = await createLead(formData);
+              fetchLeads();
+            } catch (error) {
+              console.log("error", error);
+              toast.error("error", error);
+            }
+          }}
+        />
+      )}
+
+      {selectedLead && (
+        <LeadFormModal
+          show={showForm}
+          onClose={() => setShowForm(false)}
+          isEdit={true}
+          leadId={selectedLead?._id}
+          onSubmit={async (formData, leadId) => {
+            try {
+              const response = await updateLead(leadId, formData);
+              fetchLeads();
+            } catch (error) {
+              console.log("error", error);
+            }
+          }}
+        />
+      )}
+
+      {viewLead && (
+        <LeadDetailsModal
+          lead={viewLead}
+          onClose={() => setViewLead(null)}
+          onAddFollowUp={handleAddFollowUp}
+        />
+      )}
+    </div>
+  );
+};
 
 export default Lead;

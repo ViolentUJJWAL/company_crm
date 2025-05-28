@@ -105,6 +105,40 @@ cd ../frontend
 npm install
 ```
 
+### Create .env
+
+Create a `.env` file in the backend folder and add the following variables:
+```ini
+# Database Configuration
+DB_URL={{Your MongoDB Connection URL}}
+
+# Server Configuration
+PORT={{Backend Server Port, default=5000}}
+NODE_ENV=dev  # Options: dev, production (default=dev)
+
+# Authentication
+JWT_SECRET={{Your JWT Secret Key}}
+SUPERADMINPASSWORD={{Super Admin Password}}
+
+# Frontend URL
+CLIENT_URL={{Frontend Application URL, default=http://localhost:5173}}
+
+# Nodemailer Configuration (For Email Services)
+NODEMAILER_HOST={{SMTP Host (e.g., smtp.gmail.com)}}
+NODEMAILER_PORT={{SMTP Port Number}}
+EMAIL_ID={{Your Email for Nodemailer}}
+APP_PASS={{Google App Password for Nodemailer}}
+
+# Cloudinary (For File Uploads)
+CLOUDINARY_CLOUD_NAME={{Your Cloudinary Cloud Name}}
+CLOUDINARY_API_KEY={{Your Cloudinary API Key}}
+CLOUDINARY_API_SECRET={{Your Cloudinary API Secret}}
+
+# Encryption (For Secure Data Storage)
+CRYPTO_SECRET={{32-byte Secret Key for Encryption}}
+CRYPTO_IV={{16-byte Initialization Vector}}
+```
+
 ### Running the Application
 ```sh
 # Start backend server

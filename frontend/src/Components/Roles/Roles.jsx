@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { RoleServices } from "../../services/RoleServices";
+import { RoleServices } from "../../services/roleServices";
 import { X, Edit, Eye, Plus } from "lucide-react";
 
 // Separate RoleForm component

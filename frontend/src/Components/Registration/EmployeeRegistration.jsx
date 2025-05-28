@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 import authServices from "../../services/authServices";
 import { getCompanies } from "../../services/companyServices";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const EmployeeRegistration = () => {
   const [imagePreview, setImagePreview] = useState(null);
@@ -26,6 +28,7 @@ const EmployeeRegistration = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeSection, setActiveSection] = useState("personal");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCompanies();
@@ -36,8 +39,10 @@ const EmployeeRegistration = () => {
       const response = await getCompanies();
       console.log("companies Fetched", response.data);
       setCompanies(response.data);
+      // toast.success("fetch companies successfully")
     } catch (err) {
       console.error("Error fetching companies:", err);
+      toast.error(err?.response?.data.message || "Error fetching companies")
     }
   };
 
@@ -96,7 +101,8 @@ const EmployeeRegistration = () => {
       }
       const response = await authServices.registerEmployee(formDataToSend);
       if (response.message) {
-        setSuccess("Employee registered successfully!");
+        // setSuccess("Employee registered successfully!");
+        
         setFormData({
           name: "",
           email: "",
@@ -114,8 +120,11 @@ const EmployeeRegistration = () => {
         });
       }
       setImagePreview(null);
+      toast.success("Employee registered successfully!")
+      navigate("/login")
     } catch (err) {
       setError(err.message || "Server error. Please try again.");
+      toast.error(err.message || "Server error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -123,6 +132,7 @@ const EmployeeRegistration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="relative px-6 py-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
@@ -163,7 +173,7 @@ const EmployeeRegistration = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {error && (
+            {/* {error && (
               <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center animate-fade-in">
                 {error}
               </div>
@@ -172,7 +182,7 @@ const EmployeeRegistration = () => {
               <div className="bg-green-50 text-green-600 p-4 rounded-xl text-center animate-fade-in">
                 {success}
               </div>
-            )}
+            )} */}
 
             <div
               className={`space-y-8 ${

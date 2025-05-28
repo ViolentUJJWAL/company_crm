@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { format } from "date-fns";
 import {
   Plus,
   Edit2,
@@ -14,6 +12,14 @@ import {
 } from "lucide-react";
 import taskServices from "../../services/taskServices";
 import { getVerifiedEmployees } from "../../services/employeeServices";
+import { toast, ToastContainer } from "react-toastify";
+import authServices from "../../services/authServices";
+import { DateRangePicker } from "react-date-range";
+import { format, addDays } from "date-fns";
+import { useRef, useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../store/slices/userSlice";
+
 
 const Modal = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
@@ -36,7 +42,32 @@ const Modal = ({ isOpen, onClose, children, title }) => {
   );
 };
 
-const TaskCard = ({ task, onEdit }) => {
+const TaskTable = ({ tasks, onEdit }) => {
+  const [role, setRole] = useState("");
+    const [tasksPermissions, setTasksPermissions] = useState(null);
+
+    const user = useSelector(selectUser)
+
+  const fetchProfile = async () => {
+  
+    if (user&&user.company) {
+      setRole("Employee");
+      console.log(
+        "response.user.role.permissions",
+        user.role.permissions
+      );
+      setTasksPermissions(user.role.permissions.tasks);
+    } else if (user&&user.employees) {
+      setRole("CompanyAdmin");
+    } else if (user&&user.role === "SuperAdmin") {
+      setRole("SuperAdmin");
+    }
+};
+  
+    useEffect(() => {
+      fetchProfile();
+    }, []);
+
   const getPriorityColor = (priority) => {
     const colors = {
       high: "bg-red-50 text-red-700",
@@ -47,97 +78,113 @@ const TaskCard = ({ task, onEdit }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-100 hover:shadow-sm transition-shadow duration-200">
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-base font-medium text-gray-800">
-                {task.title}
-              </h3>
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
-                  task.priority
-                )}`}
-              >
-                {task.priority}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 line-clamp-2">
-              {task.description}
-            </p>
-          </div>
-          {!task.conclusion && (
-            <button
-              onClick={() => onEdit(task)}
-              className="p-1.5 hover:bg-gray-50 rounded-md transition-colors duration-200"
+    <div className="bg-white rounded-lg border border-gray-100 overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b">
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Title
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Description
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Assigned By
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Assigned To
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Due Date
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Priority
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Status
+            </th>
+            <th className="p-3 text-left text-sm font-medium text-gray-700">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((task) => (
+            <tr
+              key={task._id}
+              className="border-b hover:bg-gray-50 group relative"
             >
-              <Edit2 className="w-4 h-4 text-gray-400" />
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Assigned By</p>
-              <p className="text-gray-700">{task.assignedBy.name}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <UserCheck className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Assigned To</p>
-              <p className="text-gray-700">{task.assignedTo.user.name}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Due Date</p>
-              <p className="text-gray-700">
+              <td className="p-3 text-sm text-gray-700">{task.title}</td>
+              <td className="p-3 text-sm text-gray-700">{task.description}</td>
+              <td className="p-3 text-sm text-gray-700">
+                {task.assignedBy.name}
+              </td>
+              <td className="p-3 text-sm text-gray-700">
+                {task.assignedTo.user.name}
+              </td>
+              <td className="p-3 text-sm text-gray-700">
                 {format(new Date(task.dueDate), "MMM d, yyyy")}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Flag className="w-3.5 h-3.5 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Status</p>
-              <div className="flex items-center gap-1">
-                {task.conclusion ? (
-                  <>
-                    <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                    <p className="text-green-700">Completed</p>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-3.5 h-3.5 text-yellow-500" />
-                    <p className="text-yellow-700">Pending</p>
-                  </>
+              </td>
+              <td className="p-3">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                    task.priority
+                  )}`}
+                >
+                  {task.priority}
+                </span>
+              </td>
+              <td className="p-3">
+                <div className="flex items-center gap-1">
+                  {task.conclusion ? (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                      <p className="text-sm text-green-700">Completed</p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-3.5 h-3.5 text-yellow-500" />
+                      <p className="text-sm text-yellow-700">Pending</p>
+                    </>
+                  )}
+                </div>
+              </td>
+              <td className="p-3">
+                {!task.conclusion && (
+                  <button
+                    onClick={() => onEdit(task)}
+                    className={` disabled:opacity-50${
+                      role === "CompanyAdmin" ||
+                      tasksPermissions?.update
+                        ? "text-red-500 hover:text-red-700 cursor-pointer"
+                        : "bg-gray-400 text-gray-500 cursor-not-allowed"
+                    }`}
+                    disabled={
+                      !(
+                        role === "CompanyAdmin" ||
+                        tasksPermissions?.update
+                      )
+                    }
+                  >
+                    <Edit2 className="w-4 h-4 text-gray-400" />
+                  </button>
                 )}
-              </div>
+              </td>
+              {task.conclusion && (
+                <div className=" min-w-[150px] absolute right-[50%] top-[-100%] px-2 bg-gray-200 rounded-xl shadow-lg hidden group-hover:block">
+                  <p className=" font-bold text-gray-800">conclusion:</p>
+                  {task.conclusion}
+                </div>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {tasks.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No task Available
             </div>
-          </div>
-        </div>
-
-        {task.conclusion && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="bg-gray-50 rounded-md p-3">
-              <span className="text-xs font-medium text-gray-700">
-                Conclusion
-              </span>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                {task.conclusion}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+          )} 
     </div>
   );
 };
@@ -160,7 +207,42 @@ const TaskAssign = () => {
     assignedTo: "",
     dueDate: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState("");
+    const [tasksPermissions, setTasksPermissions] = useState(null);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateRange, setDateRange] = useState({
+    selection: {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 7),
+      key: "selection",
+    },
+  });
+
+  const datePickerRef = useRef(null);
+  
+
+    const user = useSelector(selectUser)
+   
+     const fetchProfile = async () => {
+     
+       if (user&&user.company) {
+         setRole("Employee");
+         console.log(
+           "response.user.role.permissions",
+           user.role.permissions
+         );
+         setTasksPermissions(user.role.permissions.tasks);
+       } else if (user&&user.employees) {
+         setRole("CompanyAdmin");
+       } else if (user&&user.role === "SuperAdmin") {
+         setRole("SuperAdmin");
+       }
+   };
+  
+    useEffect(() => {
+      fetchProfile();
+    }, []);
 
   useEffect(() => {
     fetchEmployees();
@@ -176,6 +258,9 @@ const TaskAssign = () => {
       setTasks(response.tasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      toast.error("Error fetching tasks:", error)
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -194,6 +279,8 @@ const TaskAssign = () => {
     try {
       if (selectedTask) {
         await taskServices.updateTask(selectedTask._id, formData);
+        toast.success("Successfully save task")
+
       } else {
         await taskServices.createTask(formData);
       }
@@ -202,6 +289,7 @@ const TaskAssign = () => {
       resetForm();
     } catch (error) {
       console.error("Error saving task:", error);
+      toast.error(error?.response?.data.message || "Error saving task:");
     } finally {
       setLoading(false);
     }
@@ -230,8 +318,33 @@ const TaskAssign = () => {
     setIsModalOpen(true);
   };
 
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setShowDatePicker(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Handle date change
+  const handleDateChange = (item) => {
+    setDateRange({ selection: item.selection });
+    setFilters({
+      ...filters,
+      startDate: format(item.selection.startDate, "yyyy-MM-dd"),
+      endDate: format(item.selection.endDate, "yyyy-MM-dd"),
+    });
+  };
+
   return (
     <div className="p-4 max-w-7xl mx-auto">
+      <ToastContainer position="top-center" autoClose={3000} style={{marginTop:"50px"}}/>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold text-gray-800">Task Management</h1>
         <button
@@ -239,7 +352,13 @@ const TaskAssign = () => {
             resetForm();
             setIsModalOpen(true);
           }}
-          className="bg-blue-600 text-white px-3 py-1.5 rounded-md flex items-center hover:bg-blue-700 text-sm"
+          disabled={!(role === "CompanyAdmin" || tasksPermissions?.create)}
+          className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm 
+    ${
+      role === "CompanyAdmin" || tasksPermissions?.create
+        ? "bg-blue-500 text-white cursor-pointer"
+        : "bg-gray-400 text-gray-200 cursor-not-allowed"
+    }`}
         >
           <Plus className="w-4 h-4 mr-1" />
           Create Task
@@ -261,7 +380,7 @@ const TaskAssign = () => {
               onChange={(e) =>
                 setFilters({ ...filters, assignedTo: e.target.value })
               }
-              className="w-full border rounded-md p-1.5 text-sm"
+              className="w-full border border-gray-300 p-2 rounded-lg cursor-pointer"
             >
               <option value="">All employees</option>
               {employees.map((employee) => (
@@ -271,40 +390,39 @@ const TaskAssign = () => {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Start Date
-            </label>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) =>
-                setFilters({ ...filters, startDate: e.target.value })
-              }
-              className="w-full border rounded-md p-1.5 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              End Date
-            </label>
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) =>
-                setFilters({ ...filters, endDate: e.target.value })
-              }
-              className="w-full border rounded-md p-1.5 text-sm"
-            />
-          </div>
+          <div className="relative">
+      <label className="block text-xs font-medium text-gray-700 mb-1">
+        Select Date Range
+      </label>
+      <input
+        type="text"
+        readOnly
+        value={`${format(dateRange.selection.startDate, "dd MMM yyyy")} - ${format(dateRange.selection.endDate, "dd MMM yyyy")}`}
+        onClick={() => setShowDatePicker(!showDatePicker)}
+        className="w-full border border-gray-300 p-2 rounded-lg text-center cursor-pointer text-[15px]"
+      />
+
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <div ref={datePickerRef} className="absolute top-full right-0 z-50 bg-white shadow-lg rounded-lg mt-2">
+          <DateRangePicker
+            onChange={handleDateChange}
+            months={1}
+            minDate={addDays(new Date(), -300)}
+            maxDate={addDays(new Date(), 900)}
+            direction="vertical"
+            scroll={{ enabled: true }}
+            ranges={[dateRange.selection]}
+          />
+        </div>
+      )}
+    </div>
         </div>
       </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {tasks.map((task) => (
-          <TaskCard key={task._id} task={task} onEdit={handleEdit} />
-        ))}
-      </div>
+      {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          </div>):(   <TaskTable tasks={tasks} onEdit={handleEdit} />)}
 
       <Modal
         isOpen={isModalOpen}

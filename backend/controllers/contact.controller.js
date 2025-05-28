@@ -9,11 +9,11 @@ exports.addContact = async (req, res) => {
         console.log('req.body', req.body)
         const { name, phoneNo, email, address } = req.body;
 
-        if (!name || !email) {
-            return res.status(400).json({ message: "Name, email, and business card image are required" });
+        if (!name || !phoneNo) {
+            return res.status(400).json({ message: "Name and Phone number are required" });
         }
 
-        const existingContact = await Contacts.findOne({ email, company: req.user.company });
+        const existingContact = await Contacts.findOne({ phoneNo, company: req.user.company });
         if (existingContact) {
             return res.status(400).json({ message: "Contact with this email already exists" });
         }
@@ -55,6 +55,15 @@ exports.updateContact = async (req, res) => {
         const contact = await Contacts.findById(id);
         if (!contact) {
             return res.status(404).json({ message: "Contact not found" });
+        }
+
+        const existingContact = await Contacts.findOne({
+            phoneNo,
+            company: req.user.company,
+            _id: { $ne: id }, // Exclude the current contact
+        });
+        if (existingContact) {
+            return res.status(400).json({ message: "Contact with this email already exists" });
         }
 
         if (req.file) {

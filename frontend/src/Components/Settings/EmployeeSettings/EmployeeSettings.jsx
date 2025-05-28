@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Check, AlertCircle, User } from "lucide-react";
-import { getAllEmployees, toggleEmployeeStatus } from "../../../services/employeeServices";
+import {
+  getAllEmployees,
+  toggleEmployeeStatus,
+} from "../../../services/employeeServices";
 import { ToastContainer, toast } from "react-toastify";
 
 const EmployeeSettings = () => {
   const [employees, setEmployees] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -18,9 +21,15 @@ const EmployeeSettings = () => {
       setIsLoading(true);
       const response = await getAllEmployees();
       console.log("response.data", response.data);
-      setEmployees(response.data);
+      // Sort employees by name alphabetically
+      const sortedEmployees = response.data.sort((a, b) =>
+        a.user.name.localeCompare(b.user.name)
+      );
+      setEmployees(sortedEmployees);
     } catch (error) {
-      toast.error("Failed to fetch employees. Please try again.");
+      toast.error(
+        error.message || "Failed to fetch employees. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -31,13 +40,15 @@ const EmployeeSettings = () => {
       setIsLoading(true);
       const response = await toggleEmployeeStatus(employeeId);
       if (response.status) {
-        toast.success(response.message);
-        fetchEmployees();
+        fetchEmployees(); // Refetch sorted employees after toggling status
+        toast.success("Successfully changed the status", response.message);
       } else {
         toast.error(response.error || "Failed to toggle employee status");
       }
     } catch (error) {
-      toast.error("Failed to toggle employee status. Please try again.");
+      toast.error(
+        error.message || "Failed to toggle employee status. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +73,12 @@ const EmployeeSettings = () => {
 
   return (
     <div>
-                              <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
-      
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
+
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Header */}
@@ -94,81 +109,91 @@ const EmployeeSettings = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
-                    Employee Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {employees.map((employee) => (
-                  <tr
-                    key={employee._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <User size={20} className="text-blue-600" />
-                        <span className="text-sm font-medium text-gray-800">
-                          {employee.user.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-800">
-                          {employee.user.email}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          employee.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {employee.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <ToggleSwitch
-                          isActive={employee.isActive}
-                          onToggle={() => handleToggleStatus(employee._id)}
-                          disabled={isLoading}
-                        />
-                        <span className="text-sm text-gray-500">
-                          {employee.isActive ? "Deactivate" : "Activate"}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {employees.length === 0 && (
+            {isLoading ? (
+              <td
+                colSpan="4"
+                className="flex justify-center items-center h-64 "
+              >
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+              </td>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td
-                      colSpan={3}
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      No employees found.
-                    </td>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                      Employee Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                      Actions
+                    </th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {employees.length > 0 ? (
+                    employees.map((employee) => (
+                      <tr
+                        key={employee._id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <User size={20} className="text-blue-600" />
+                            <span className="text-sm font-medium text-gray-800">
+                              {employee.user.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium text-gray-800">
+                              {employee.user.email}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              employee.isActive
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {employee.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <ToggleSwitch
+                              isActive={employee.isActive}
+                              onToggle={() => handleToggleStatus(employee._id)}
+                              disabled={isLoading}
+                            />
+                            <span className="text-sm text-gray-500">
+                              {employee.isActive ? "Deactivate" : "Activate"}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-8 text-center text-gray-500"
+                      >
+                        No employees found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

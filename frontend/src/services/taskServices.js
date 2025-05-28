@@ -61,6 +61,7 @@ export const taskServices = {
   getMyTasks: async () => {
     try {
       const response = await api.get("/task-assigned");
+      // console.log('response.data', response.data)
       return response.data;
     } catch (error) {
       console.error("Error fetching user tasks:", error);

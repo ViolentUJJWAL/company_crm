@@ -30,6 +30,10 @@ const roleSchema = new mongoose.Schema(
             },
             todos: {
                 read: { type: Boolean, default: false },
+            },
+            attendance: {
+                create: { type: Boolean, default: false },
+                read: { type: Boolean, default: false },
             }
         },
         user: {

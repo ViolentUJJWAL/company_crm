@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import authServices from "../../services/authServices";
 import { useNavigate } from "react-router";
+import { ToastContainer, toast } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser, setUser } from "../../store/slices/userSlice";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,6 +25,22 @@ const Login = () => {
     success: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const user = useSelector(selectUser);
+
+  // Determine the correct dashboard route based on user data
+  const getDashboardRoute = (userData) => {
+    if (!userData) return "/login";
+    
+    if (userData.role === "SuperAdmin") {
+      return "/super-admin-dashboard";
+    } else if (userData.employees) {
+      return "/company-dashboard";  // Changed from "/" to "/company-dashboard"
+    } else if (userData.company) {
+      return "/employee-dashboard";
+    }
+    return "/login";
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,11 +59,22 @@ const Login = () => {
     try {
       const response = await authServices.login(formData);
       if (response.token) {
-        navigate("/");
-        setSuccess("Login successful!");
+        // Fetch updated user profile after login
+        const profileResponse = await authServices.getProfile();
+        const userData = profileResponse.user;
+
+        // Dispatch user data to Redux store
+        dispatch(setUser(userData));
+
+        // Navigate to the appropriate dashboard based on user role
+        const dashboardRoute = getDashboardRoute(userData);
+        navigate(dashboardRoute, { replace: true });
+
+        toast.success("Login successful!");
       }
     } catch (err) {
       setError(err.message || "Login failed. Please try again.");
+      toast.error(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -77,6 +108,11 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <ToastContainer
+        position="top-center"
+        style={{ marginTop: "50px" }}
+        autoClose={3000}
+      />
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="relative px-6 py-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">

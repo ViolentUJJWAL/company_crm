@@ -41,15 +41,17 @@ export const getEmployeeById = async (employeeId) => {
 };
 
 // ✅ Verify Employee and Assign Role
-export const verifyEmployee = async (employeeId, roleId) => {
+export const verifyEmployee = async (employeeId, roleName, permissions, team) => {
   try {
     const response = await api.post("/company/employee/verification", {
       employeeId,
-      roleId,
+      roleName,
+      permissions,
+      team,
     });
     return response.data;
   } catch (error) {
-    throw error.response ? error.response.data : error.message;
+    throw error;
   }
 };
 
@@ -63,5 +65,70 @@ export const toggleEmployeeStatus = async (employeeId) => {
     return response;
   } catch (error) {
     throw error.response ? error.response.data : error.message;
+  }
+};
+
+// Service for updating permissions
+export const updateEmployeePermissions = async (
+  employeeId,
+  roleName,
+  permissions,
+  team
+) => {
+  try {
+    const response = await api.put("/company/employee/change-permissions", {
+      employeeId,
+      roleName,
+      permissions,
+      team
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+
+export const updateEmployee = async (employeeData, file) => {
+  try {
+    const formData = new FormData();
+    
+    // Append form fields if they exist
+    if (employeeData.name) formData.append("name", employeeData.name);
+    if (employeeData.designation) formData.append("designation", employeeData.designation);
+    if (employeeData.phoneNo) formData.append("phoneNo", employeeData.phoneNo);
+    
+    if (employeeData.address) {
+      if (employeeData.address.country) formData.append("address[country]", employeeData.address.country);
+      if (employeeData.address.state) formData.append("address[state]", employeeData.address.state);
+      if (employeeData.address.city) formData.append("address[city]", employeeData.address.city);
+      if (employeeData.address.pincode) formData.append("address[pincode]", employeeData.address.pincode);
+    }
+
+    // Append file if provided
+    if (file) {
+      formData.append("image", file);
+    }
+
+    const response = await api.put("/auth/update/employee-profile", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: "Something went wrong" };
+  }
+};
+
+export const rejectEmployeeVerification = async (employeeId) => {
+  try {
+    const response = await api.post("/company/employee/rejected", {
+      employeeId,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
   }
 };

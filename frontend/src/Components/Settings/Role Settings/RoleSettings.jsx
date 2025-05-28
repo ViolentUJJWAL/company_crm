@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Check, AlertCircle, Shield } from "lucide-react";
-import { RoleServices } from "../../../services/RoleServices";
+import { RoleServices } from "../../../services/roleServices";
 import { ToastContainer, toast } from "react-toastify";
 
 const RoleSettings = () => {

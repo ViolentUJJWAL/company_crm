@@ -3,7 +3,10 @@ const Employee = require("../models/employee.model");
 const User = require("../models/user.model");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
-const { uploadOnCloudinary } = require("../utils/cloudinary");
+const {
+  uploadOnCloudinary,
+  deleteOnCloudinary,
+} = require("../utils/cloudinary");
 const checkCompanyAndEmployeeStatus = require("../utils/checkCompanyAndEmployeeStatus");
 const BlockedToken = require("../models/blockToken.model");
 const emptyTempFolder = require("../utils/emptyTempFolder");
@@ -11,7 +14,8 @@ const emptyTempFolder = require("../utils/emptyTempFolder");
 // ✅ Super Admin Registration
 exports.registerSuperAdmin = async (req, res) => {
   try {
-    const { name, email, phoneNo, password, supreAdmincreatePassword } = req.body;
+    const { name, email, phoneNo, password, supreAdmincreatePassword } =
+      req.body;
 
     // 🔸 Validation: Check required fields
     if (!name || !email || !phoneNo || !password || !supreAdmincreatePassword) {
@@ -173,7 +177,7 @@ exports.registerEmployee = async (req, res) => {
       return res.status(403).json({ message: "Company is inactive" });
 
     const file = req.file;
-    if (!file) return res.status(400).json({ nessage: "No image provided." });
+    if (!file) return res.status(400).json({ message: "No image provided." });
 
     const uploadResponse = await uploadOnCloudinary(file.path);
     if (!uploadResponse)
@@ -206,14 +210,27 @@ exports.registerEmployee = async (req, res) => {
 
     await newEmployee.save();
 
+    // ✅ Corrected Email Message Formatting & Variables
     const msg = `
-            Dear ${company.owner.name},\n\nA new employee, ${newEmployee.name}, has registered under ${company.name}. Please verify or delete the request.\n\nBest regards,\n${company.name}
-        `;
+Dear ${company.owner.name},
+
+A new employee, **${newUser.name}**, has registered under **${company.name}**.
+
+- **Employee Name:** ${newUser.name}
+- **Designation:** ${designation}
+- **Email:** ${email}
+- **Phone Number:** ${phoneNo}
+
+Please review and verify or delete this request.
+
+Best regards,  
+${company.name}
+    `;
 
     await sendEmail(company.owner.email, "Employee Verification Required", msg);
 
     return res.status(201).json({
-      message: "Employee registered successfully, wait for you verification",
+      message: "Employee registered successfully, wait for your verification",
     });
   } catch (error) {
     console.error("Employee Registration Error:", error);
@@ -242,7 +259,11 @@ exports.loginUser = async (req, res) => {
     const token = user.generateToken();
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "Strict",
+      // true for host http
+      secure: process.env.NODE_ENV === "production",
+      // sameSite: "Strict",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict", // To allow cross-origin requests (important for cookies with different origins)
+
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
     });
 
@@ -285,8 +306,10 @@ exports.getProfile = async (req, res) => {
       return res.status(200).json({ user: company });
     } else if (req.user.role === "Employee") {
       const employee = await Employee.findOne({ user: req.user._id })
-        .populate("user") // Populate 'user'
-        .populate("company", "name").populate("role"); // Populate 'company' and select only 'name'
+        .populate("user")
+        .populate("company", "name")
+        .populate("role")
+        .populate("team", "name");
 
       return res.status(200).json({ user: employee });
     }
@@ -384,5 +407,68 @@ exports.resetPassword = async (req, res) => {
   } catch (error) {
     console.error("Reset Password Error:", error);
     return res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.updateEmployee = async (req, res) => {
+  try {
+    console.log("req.body", req.body);
+    const userId = req.user._id;
+    const { designation, address, name, phoneNo } = req.body;
+    const companyId = req.user.company;
+
+    // Find the employee record
+    const employee = await Employee.findOne({
+      user: userId,
+      company: companyId,
+    });
+    const user = await User.findById(userId);
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    // Validate input fields
+    if (designation) employee.designation = designation;
+    if (address) {
+      if (address.country) employee.address.country = address.country;
+      if (address.state) employee.address.state = address.state;
+      if (address.city) employee.address.city = address.city;
+      if (address.pincode) {
+        if (!/^[0-9]{4,10}$/.test(address.pincode)) {
+          return res.status(400).json({ message: "Invalid pincode format" });
+        }
+        employee.address.pincode = address.pincode;
+      }
+    }
+    if (name) user.name = name;
+    if (phoneNo) user.phoneNo = phoneNo;
+
+    // Handle image update
+    if (req.file) {
+      const localFilePath = req.file.path;
+
+      // Delete the old image from Cloudinary
+      if (employee.image.public_id) {
+        await deleteOnCloudinary(employee.image.public_id);
+      }
+
+      // Upload the new image
+      const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
+      if (!cloudinaryResponse) {
+        return res.status(500).json({ message: "Image upload failed" });
+      }
+      employee.image.public_id = cloudinaryResponse.public_id;
+      employee.image.url = cloudinaryResponse.url;
+    }
+
+    // Save the updated employee record
+    await employee.save();
+    await user.save();
+    res
+      .status(200)
+      .json({ message: "Employee updated successfully", employee });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

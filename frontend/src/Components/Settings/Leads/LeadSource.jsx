@@ -1,44 +1,45 @@
 import React, { useState, useEffect } from "react";
-import LeadSourceService from "../../../services/leadSourceService";
+import LeadSourceService from "../../../services/LeadSourceService";
 import { X, Pencil, Plus, Check, AlertCircle } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 
-
 const Modal = ({ isOpen, onClose, title, onSubmit, children, isLoading }) => {
-  // If the modal is not open, return null (don't render anything)
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-gray-500/40 bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-md p-6">
-        {/* Modal Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
+            disabled={isLoading}
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Modal Content (Children) */}
-        {children}
+        <div className={isLoading ? "opacity-50 pointer-events-none" : ""}>
+          {children}
+        </div>
 
-        {/* Modal Footer */}
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+            disabled={isLoading}
+            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
             disabled={isLoading}
-            className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 min-w-[100px]"
           >
-            {isLoading ? "Processing..." : "Submit"}
+            {isLoading ? 
+              (title.includes("Create") ? "Creating..." : "Updating...") 
+              : "Submit"}
           </button>
         </div>
       </div>
@@ -52,9 +53,8 @@ const LeadSource = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedLeadSource, setSelectedLeadSource] = useState(null);
   const [newLeadSourceName, setNewLeadSourceName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchLeadSources();
@@ -64,11 +64,11 @@ const LeadSource = () => {
     try {
       setIsLoading(true);
       const response = await LeadSourceService.getAllLeadSources();
-      console.log("response.data", response.data);
       setLeadSources(response.data);
+      console.log("error",response)
     } catch (error) {
-      // setError(error.message);
-      toast.error(error.message);
+      toast.error("Failed to fetch lead source", error.message);
+      
     } finally {
       setIsLoading(false);
     }
@@ -77,48 +77,41 @@ const LeadSource = () => {
   const handleCreateLeadSource = async () => {
     try {
       if (!newLeadSourceName.trim()) {
-        // setError("Lead source name is required");
         toast.error("Lead source name is required");
-        
         return;
       }
-      setIsLoading(true);
+      setIsSubmitting(true);
       await LeadSourceService.addLeadSource({ name: newLeadSourceName });
-      // setSuccess("Lead source created successfully");
-      toast.success("Lead source created successfully")
+      toast.success("Lead source created successfully");
       setIsCreateModalOpen(false);
       setNewLeadSourceName("");
       fetchLeadSources();
     } catch (error) {
-      // setError(error.message);
-      toast.error(error.message);
+      toast.error(error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateLeadSource = async () => {
     try {
       if (!newLeadSourceName.trim()) {
-        // setError("Lead source name is required");
-        toast.error("Lead source name is required")
+        toast.error("Lead source name is required");
         return;
       }
-      setIsLoading(true);
+      setIsSubmitting(true);
       await LeadSourceService.updateLeadSource(selectedLeadSource._id, {
         name: newLeadSourceName,
       });
-      // setSuccess("Lead source updated successfully");
       toast.success("Lead source updated successfully");
       setIsUpdateModalOpen(false);
       setSelectedLeadSource(null);
       setNewLeadSourceName("");
       fetchLeadSources();
     } catch (error) {
-      // setError(error.message);
-      toast.error(error.message);
+      toast.error(error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -133,13 +126,12 @@ const LeadSource = () => {
       );
       fetchLeadSources();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Toggle Switch Component
   const ToggleSwitch = ({ isActive, onToggle, disabled }) => (
     <button
       onClick={onToggle}
@@ -158,11 +150,10 @@ const LeadSource = () => {
 
   return (
     <div>
-            <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
+      <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
       
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">Lead Sources</h1>
             <button
@@ -174,22 +165,11 @@ const LeadSource = () => {
             </button>
           </div>
 
-          {/* Alerts
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-              <AlertCircle size={20} />
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
-              <Check size={20} />
-              {success}
-            </div>
-          )} */}
-
-          {/* Table */}
           <div className="overflow-x-auto">
+          {isLoading ? (
+          <td colSpan="4" className="flex justify-center items-center h-64 ">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          </td> ):(
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -241,7 +221,7 @@ const LeadSource = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table>)}
           </div>
         </div>
       </div>
@@ -249,9 +229,10 @@ const LeadSource = () => {
       {/* Create Modal */}
       <Modal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => !isSubmitting && setIsCreateModalOpen(false)}
         title="Create Lead Source"
         onSubmit={handleCreateLeadSource}
+        isLoading={isSubmitting}
       >
         <input
           type="text"
@@ -259,15 +240,17 @@ const LeadSource = () => {
           onChange={(e) => setNewLeadSourceName(e.target.value)}
           placeholder="Enter lead source name"
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isSubmitting}
         />
       </Modal>
 
       {/* Update Modal */}
       <Modal
         isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
+        onClose={() => !isSubmitting && setIsUpdateModalOpen(false)}
         title="Update Lead Source"
         onSubmit={handleUpdateLeadSource}
+        isLoading={isSubmitting}
       >
         <input
           type="text"
@@ -275,9 +258,11 @@ const LeadSource = () => {
           onChange={(e) => setNewLeadSourceName(e.target.value)}
           placeholder="Enter lead source name"
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={isSubmitting}
         />
       </Modal>
     </div>
   );
 };
+
 export default LeadSource;

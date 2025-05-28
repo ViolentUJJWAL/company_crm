@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Camera } from "lucide-react";
 import authServices from "../../services/authServices";
+import { toast,ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router";
+
 
 const CompanyRegistration = () => {
   const [imagePreview, setImagePreview] = useState(null);
@@ -26,6 +29,7 @@ const CompanyRegistration = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeSection, setActiveSection] = useState("personal");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,6 +89,7 @@ const CompanyRegistration = () => {
       console.log("response", response);
       if (response.message) {
         setSuccess("Company registered successfully!");
+        toast.success("Company registered successfully!")
         setFormData({
           ownerName: "",
           companyName: "",
@@ -104,8 +109,10 @@ const CompanyRegistration = () => {
         });
       }
       setImagePreview(null);
+      navigate("/login")
     } catch (err) {
       setError(err.message || "Server error. Please try again.");
+      toast.error(err.message || "Server error. Please try again")
     } finally {
       setIsSubmitting(false);
     }
@@ -113,6 +120,7 @@ const CompanyRegistration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+                  <ToastContainer position="top-center" style={{marginTop:"50px"}} autoClose={3000} />
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
           <div className="relative px-6 py-12 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
@@ -153,7 +161,7 @@ const CompanyRegistration = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {error && (
+            {/* {error && (
               <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center animate-fade-in">
                 {error}
               </div>
@@ -162,7 +170,7 @@ const CompanyRegistration = () => {
               <div className="bg-green-50 text-green-600 p-4 rounded-xl text-center animate-fade-in">
                 {success}
               </div>
-            )}
+            )} */}
 
             <div
               className={`space-y-8 ${

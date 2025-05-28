@@ -7,9 +7,9 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Navbar  />
 
-      <Sidebar isOpen={isSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <main
         className={`pt-16 min-h-screen transition-all duration-300

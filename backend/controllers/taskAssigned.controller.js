@@ -1,3 +1,4 @@
+const Company = require("../models/company.model");
 const Employee = require("../models/employee.model");
 const TaskAssigned = require("../models/taskAssigned.model");
 const { scheduleTaskNotifications } = require("../utils/scheduledNotification");
@@ -39,17 +40,17 @@ exports.createTask = async (req, res) => {
       title: savedTask.title,
       user: req.user,
     };
-    scheduleTaskNotifications(scheduleTask);
+    // scheduleTaskNotifications(scheduleTask);
 
-    await sendEmail(
-      employeeExists.user.email,
-      "New Task Assigned",
-      `You have been assigned a new task: ${title} By ${req.user.name}`
-    );
+    // Find the company and explicitly select nodemailerCredential
+    const companyInfo = await Company.findById(req.user.company).select('+nodemailerCredential.email +nodemailerCredential.appPassword');;
+
+    await sendEmail(employeeExists.user.email,"New Task Assigned",`You have been assigned a new task: ${title} By ${req.user.name}`, companyInfo);
     res
       .status(201)
       .json({ message: "Task assigned successfully", task: newTask });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -114,14 +115,17 @@ exports.updateTask = async (req, res) => {
       title: savedTask.title,
       user: req.user,
     };
-    scheduleTaskNotifications(scheduleTask);
+    // scheduleTaskNotifications(scheduleTask);
+
+    // Find the company and explicitly select nodemailerCredential
+    const companyInfo = await Company.findById(req.user.company).select('+nodemailerCredential.email +nodemailerCredential.appPassword');;
 
     // Send email notification
     if (!oldTask.assignedTo.equals(task.assignedTo)) {
       await sendEmail(
         employeeExists.user.email,
         "New Task Assigned",
-        `You have been assigned a new task: ${title} By ${req.user.name}`
+        `You have been assigned a new task: ${title} By ${req.user.name}`, companyInfo
       );
     }
     await sendEmail(
@@ -129,7 +133,7 @@ exports.updateTask = async (req, res) => {
       "Task Updated",
       `Your assigned task has been updated. \n\nPrevious details: ${JSON.stringify(
         oldTask
-      )} \n\nNew Task details: ${JSON.stringify(task)}`
+      )} \n\nNew Task details: ${JSON.stringify(task)}`, companyInfo
     );
     res.json({ message: "Task updated successfully", task });
   } catch (error) {
